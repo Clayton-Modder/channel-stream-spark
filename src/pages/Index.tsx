@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Tv, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";

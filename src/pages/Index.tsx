@@ -59,6 +59,12 @@ const Index = () => {
               className="pl-9 bg-secondary border-border"
             />
           </div>
+          <button
+            onClick={() => navigate("/settings")}
+            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
       </header>
 

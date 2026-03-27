@@ -114,9 +114,13 @@ const SettingsPage = () => {
     {
       icon: RefreshCw,
       label: "Atualizar App",
-      desc: "Recarregar para buscar atualizações",
+      desc: "Baixar a versão mais recente do app",
       color: "text-blue-400",
-      action: () => window.location.reload(),
+      action: () =>
+        window.open(
+          "http://tvonlinehd.com.br/Vip/update-tvonlinehd.apk",
+          "_blank"
+        ),
     },
     {
       icon: HeadphonesIcon,

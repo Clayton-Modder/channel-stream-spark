@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tv, Settings } from "lucide-react";
+import { Search, Tv, Settings, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface Channel {
   id: string;
@@ -29,6 +30,8 @@ const Index = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(0);
   const [search, setSearch] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { isFavorite, toggleFavorite, favorites } = useFavorites();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["channels"],
@@ -38,7 +41,8 @@ const Index = () => {
   const filtered = data?.channels.filter((ch) => {
     const matchCat = activeCategory === 0 || ch.categories.includes(activeCategory);
     const matchSearch = ch.name.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
+    const matchFav = !showFavoritesOnly || isFavorite(ch.id);
+    return matchCat && matchSearch && matchFav;
   }) ?? [];
 
   return (
@@ -59,12 +63,25 @@ const Index = () => {
               className="pl-9 bg-secondary border-border"
             />
           </div>
-          <button
-            onClick={() => navigate("/settings")}
-            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className={`p-2 rounded-lg transition-colors ${
+                showFavoritesOnly
+                  ? "bg-yellow-500/20 text-yellow-400"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
+              title="Favoritos"
+            >
+              <Star className={`w-5 h-5 ${showFavoritesOnly ? "fill-yellow-400" : ""}`} />
+            </button>
+            <button
+              onClick={() => navigate("/settings")}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -80,7 +97,8 @@ const Index = () => {
 
         {/* Count */}
         <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          {filtered.length} Canais
+          {showFavoritesOnly && <Star className="w-3.5 h-3.5 inline fill-yellow-400 text-yellow-400 mr-1 -mt-0.5" />}
+          {filtered.length} {showFavoritesOnly ? "Favoritos" : "Canais"}
         </p>
 
         {/* Loading / Error */}
@@ -103,8 +121,19 @@ const Index = () => {
                 index={i + 1}
                 name={ch.name}
                 image={ch.image}
+                isFavorite={isFavorite(ch.id)}
+                onToggleFavorite={toggleFavorite}
               />
             ))}
+          </div>
+        )}
+
+        {/* Empty favorites */}
+        {!isLoading && showFavoritesOnly && filtered.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            <Star className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Nenhum canal favorito ainda.</p>
+            <p className="text-xs mt-1">Toque na ★ para adicionar favoritos.</p>
           </div>
         )}
       </main>

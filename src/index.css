@@ -42,6 +42,7 @@ All colors MUST be HSL.
     --live-foreground: 0 0% 100%;
 
   }
+}
 
 @layer base {
   * {

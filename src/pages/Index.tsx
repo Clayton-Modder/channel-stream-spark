@@ -26,6 +26,7 @@ const fetchChannels = async (): Promise<ApiData> => {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(0);
   const [search, setSearch] = useState("");
 

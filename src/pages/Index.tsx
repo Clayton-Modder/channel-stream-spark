@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tv } from "lucide-react";
+import { Search, Tv, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";
@@ -25,6 +26,7 @@ const fetchChannels = async (): Promise<ApiData> => {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(0);
   const [search, setSearch] = useState("");
 
@@ -57,6 +59,12 @@ const Index = () => {
               className="pl-9 bg-secondary border-border"
             />
           </div>
+          <button
+            onClick={() => navigate("/settings")}
+            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
       </header>
 
@@ -91,10 +99,10 @@ const Index = () => {
             {filtered.map((ch, i) => (
               <ChannelCard
                 key={ch.id}
+                id={ch.id}
                 index={i + 1}
                 name={ch.name}
                 image={ch.image}
-                url={ch.url}
               />
             ))}
           </div>

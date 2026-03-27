@@ -91,10 +91,10 @@ const Index = () => {
             {filtered.map((ch, i) => (
               <ChannelCard
                 key={ch.id}
+                id={ch.id}
                 index={i + 1}
                 name={ch.name}
                 image={ch.image}
-                url={ch.url}
               />
             ))}
           </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tv } from "lucide-react";
+import { Search, Tv, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";

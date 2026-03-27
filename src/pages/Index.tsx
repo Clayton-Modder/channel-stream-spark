@@ -19,7 +19,7 @@ interface ApiData {
 }
 
 const fetchChannels = async (): Promise<ApiData> => {
-  const res = await fetch("https://tvonlinehd.com.br/channels.json");
+  const res = await fetch("/channels.json");
   if (!res.ok) throw new Error("Falha ao carregar canais");
   return res.json();
 };

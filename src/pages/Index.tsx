@@ -21,6 +21,14 @@ interface ApiData {
 }
 
 const fetchChannels = async (): Promise<ApiData> => {
+  const stored = localStorage.getItem("tv_channels_data");
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      // Filter out archived channels for public view
+      return { ...parsed, channels: parsed.channels.filter((c: any) => !c.archived) };
+    } catch {}
+  }
   const res = await fetch("/channels.json");
   if (!res.ok) throw new Error("Falha ao carregar canais");
   return res.json();

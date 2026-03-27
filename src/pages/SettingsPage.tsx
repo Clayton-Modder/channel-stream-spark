@@ -55,9 +55,22 @@ const SettingsPage = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("https://tvonlinehd.com.br/Vip/contas.json");
-      if (!res.ok) throw new Error("Erro ao buscar dados");
-      const accounts: VipAccount[] = await res.json();
+      let accounts: VipAccount[] = [];
+      try {
+        const res = await fetch("https://tvonlinehd.com.br/Vip/contas.json");
+        if (res.ok) {
+          accounts = await res.json();
+        }
+      } catch {
+        // CORS fallback: try via proxy
+        const proxyRes = await fetch(
+          "https://api.allorigins.win/raw?url=" +
+            encodeURIComponent("https://tvonlinehd.com.br/Vip/contas.json")
+        );
+        if (!proxyRes.ok) throw new Error("Erro ao buscar dados");
+        accounts = await proxyRes.json();
+      }
+      if (!accounts.length) throw new Error("Nenhuma conta encontrada");
 
       const found = accounts.find(
         (a) => a.codigo?.toLowerCase() === trimmed.toLowerCase()

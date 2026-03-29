@@ -60,7 +60,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Tv className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold tracking-tight">TV ONLINE</h1>
+            <h1 className="text-xl font-bold tracking-tight">Mega Canais TV</h1>
           </div>
           <div className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

@@ -5,6 +5,7 @@ import { Search, Tv, Settings, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";
+import GamesSection from "@/components/GamesSection";
 import { useFavorites } from "@/hooks/useFavorites";
 
 interface Channel {

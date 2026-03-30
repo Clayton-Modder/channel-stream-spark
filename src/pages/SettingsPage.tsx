@@ -4,13 +4,8 @@ import {
   ArrowLeft,
   Trash2,
   RefreshCw,
-  HeadphonesIcon,
   Crown,
   ExternalLink,
-  KeyRound,
-  Loader2,
-  CheckCircle2,
-  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 

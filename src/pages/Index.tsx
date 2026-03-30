@@ -5,6 +5,7 @@ import { Search, Tv, Settings, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";
+import GamesSection from "@/components/GamesSection";
 import { useFavorites } from "@/hooks/useFavorites";
 
 interface Channel {
@@ -94,6 +95,9 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Games of the day */}
+        <GamesSection />
+
         {/* Categories */}
         {data?.categories && (
           <CategoryFilter

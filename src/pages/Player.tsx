@@ -37,6 +37,8 @@ const Player = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const channelId = params.get("id") || "";
+  const streamUrl = params.get("stream") || "";
+  const streamTitle = params.get("title") || "";
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -44,15 +46,20 @@ const Player = () => {
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const { blocked, validate } = usePresenceCheck();
 
+  const isStreamMode = !!streamUrl;
+
   const { data } = useQuery({
     queryKey: ["channels"],
     queryFn: fetchChannels,
+    enabled: !isStreamMode,
   });
 
   const channels = data?.channels ?? [];
   const categories = data?.categories ?? [];
   const currentIndex = channels.findIndex((c) => c.id === channelId);
-  const current = channels[currentIndex];
+  const current = isStreamMode
+    ? { id: "stream", name: streamTitle || "Transmissão", image: "", categories: [], url: streamUrl }
+    : channels[currentIndex];
 
   const goTo = useCallback(
     (ch: Channel) => {

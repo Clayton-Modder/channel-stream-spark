@@ -9,90 +9,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface VipAccount {
-  username: string;
-  password: string;
-  label: string;
-  expiry: string;
-  active: boolean;
-  created_at: string;
-  updated_at: string;
-  last_login: string | null;
-  login_count: number;
-  last_ip: string | null;
-  codigo: string;
-  usuario: string;
-}
-
-const VIP_STORAGE_KEY = "tv-vip-account";
-
-function loadSavedAccount(): VipAccount | null {
-  try {
-    const raw = localStorage.getItem(VIP_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 const SettingsPage = () => {
   const navigate = useNavigate();
-  const [codigo, setCodigo] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [account, setAccount] = useState<VipAccount | null>(loadSavedAccount);
 
-  const activateCode = async () => {
-    const trimmed = codigo.trim();
-    if (!trimmed) {
-      toast.error("Digite um código válido");
-      return;
+  const clearCache = () => {
+    if ("caches" in window) {
+      caches.keys().then((names) => names.forEach((n) => caches.delete(n)));
     }
-
-    setLoading(true);
-    try {
-      let accounts: VipAccount[] = [];
-      try {
-        const res = await fetch("https://tvonlinehd.com.br/Vip/contas.json");
-        if (res.ok) {
-          accounts = await res.json();
-        }
-      } catch {
-        // CORS fallback: try via proxy
-        const proxyRes = await fetch(
-          "https://api.allorigins.win/raw?url=" +
-            encodeURIComponent("https://tvonlinehd.com.br/Vip/contas.json")
-        );
-        if (!proxyRes.ok) throw new Error("Erro ao buscar dados");
-        accounts = await proxyRes.json();
-      }
-      if (!accounts.length) throw new Error("Nenhuma conta encontrada");
-
-      const found = accounts.find(
-        (a) => a.codigo?.toLowerCase() === trimmed.toLowerCase()
-      );
-
-      if (!found) {
-        toast.error("Código não encontrado!");
-        setAccount(null);
-        localStorage.removeItem(VIP_STORAGE_KEY);
-        return;
-      }
-
-      if (!found.active) {
-        toast.error("Este código está inativo!");
-        setAccount(null);
-        localStorage.removeItem(VIP_STORAGE_KEY);
-        return;
-      }
-
-      localStorage.setItem(VIP_STORAGE_KEY, JSON.stringify(found));
-      setAccount(found);
-      toast.success(`VIP ativado! Bem-vindo, ${found.usuario || found.label}`);
-    } catch {
-      toast.error("Erro de conexão. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
+    localStorage.clear();
+    sessionStorage.clear();
+    toast.success("Cache limpo com sucesso!");
   };
 
   const removeAccount = () => {

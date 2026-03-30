@@ -21,22 +21,6 @@ const SettingsPage = () => {
     toast.success("Cache limpo com sucesso!");
   };
 
-  const removeAccount = () => {
-    localStorage.removeItem(VIP_STORAGE_KEY);
-    setAccount(null);
-    setCodigo("");
-    toast.success("Conta VIP removida");
-  };
-
-  const clearCache = () => {
-    if ("caches" in window) {
-      caches.keys().then((names) => names.forEach((n) => caches.delete(n)));
-    }
-    localStorage.clear();
-    sessionStorage.clear();
-    toast.success("Cache limpo com sucesso!");
-  };
-
   const items = [
     {
       icon: Trash2,
@@ -60,7 +44,6 @@ const SettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center gap-3">
           <button
@@ -74,84 +57,6 @@ const SettingsPage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-lg space-y-6">
-        {/* Activate Code Section */}
-        <div className="rounded-xl bg-card border border-border p-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <KeyRound className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-bold text-base">Ativar Código VIP</h2>
-              <p className="text-xs text-muted-foreground">
-                Insira seu código para liberar o acesso
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && activateCode()}
-              placeholder="Digite seu código..."
-              className="flex-1 h-11 rounded-lg border border-border bg-secondary px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-            <button
-              onClick={activateCode}
-              disabled={loading}
-              className="h-11 px-5 rounded-lg bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Aplicar"
-              )}
-            </button>
-          </div>
-
-          {/* Account Info */}
-          {account && (
-            <div className="rounded-lg bg-green-500/10 border border-green-500/30 p-4 space-y-2">
-              <div className="flex items-center gap-2 text-green-400">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="text-sm font-bold">VIP Ativo</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-muted-foreground">Usuário:</span>
-                  <p className="font-medium">{account.usuario || account.username}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Label:</span>
-                  <p className="font-medium">{account.label}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Expira em:</span>
-                  <p className="font-medium">{account.expiry || "—"}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Status:</span>
-                  <p className="font-medium">
-                    {account.active ? (
-                      <span className="text-green-400">Ativo</span>
-                    ) : (
-                      <span className="text-red-400">Inativo</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={removeAccount}
-                className="mt-2 text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
-              >
-                <XCircle className="w-3.5 h-3.5" />
-                Remover conta
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* VIP Card */}
         <div className="rounded-xl bg-gradient-to-br from-yellow-500/20 via-amber-500/10 to-orange-500/20 border border-yellow-500/30 p-5">
           <div className="flex items-center gap-3 mb-3">
@@ -203,7 +108,6 @@ const SettingsPage = () => {
           ))}
         </div>
 
-        {/* Footer */}
         <p className="text-center text-xs text-muted-foreground pt-4">
           TV Online HD v1.0 • Todos os direitos reservados
         </p>

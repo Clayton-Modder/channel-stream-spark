@@ -135,17 +135,6 @@ const SettingsPage = () => {
           "_blank"
         ),
     },
-    {
-      icon: HeadphonesIcon,
-      label: "Suporte",
-      desc: "Entrar em contato com a equipe",
-      color: "text-green-400",
-      action: () =>
-        window.open(
-          "https://wa.me/5500000000000?text=Olá, preciso de suporte!",
-          "_blank"
-        ),
-    },
   ];
 
   return (

@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react";
 
-const PRESENCE_INTERVAL_MS = 40 * 60 * 1000; // 40 minutes
-const STORAGE_KEY = "presence_last_validated";
+const PRESENCE_INTERVAL_MS = 40 * 60 * 1000;
 
 export function usePresenceCheck() {
-  const [blocked, setBlocked] = useState(true); // blocked on first load
+  const [blocked, setBlocked] = useState(true);
 
   useEffect(() => {
-    if (blocked) return; // don't start timer while blocked
+    if (blocked) return;
     const timer = setTimeout(() => setBlocked(true), PRESENCE_INTERVAL_MS);
     return () => clearTimeout(timer);
   }, [blocked]);
 
   const validate = () => {
-    window.open("https://dfmnfkdkf.com", "_blank");
-    localStorage.setItem(STORAGE_KEY, String(Date.now()));
+    window.open("https://omg10.com/4/10807179", "_blank");
     setBlocked(false);
   };
 
@@ -26,10 +24,10 @@ interface PresenceModalProps {
 }
 
 const PresenceModal = ({ onValidate }: PresenceModalProps) => {
-  const [countdown, setCountdown] = useState(0);
+  const [countdown, setCountdown] = useState(5);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    setCountdown(5);
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -42,13 +40,20 @@ const PresenceModal = ({ onValidate }: PresenceModalProps) => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleClick = () => {
+    setVerifying(true);
+    onValidate();
+    // Simulate verification delay
+    setTimeout(() => setVerifying(false), 3000);
+  };
+
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-2xl animate-in zoom-in-95 duration-300">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-8 w-8 text-primary"
+            className="h-8 w-8 text-primary animate-pulse"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -69,13 +74,20 @@ const PresenceModal = ({ onValidate }: PresenceModalProps) => {
           Para continuar assistindo, clique abaixo para validar sua presença.
         </p>
 
-        <button
-          onClick={onValidate}
-          disabled={countdown > 0}
-          className="w-full rounded-xl bg-primary py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {countdown > 0 ? `Aguarde ${countdown}s...` : "LIBERAR ACESSO"}
-        </button>
+        {verifying ? (
+          <div className="flex flex-col items-center gap-3 py-3">
+            <div className="h-8 w-8 rounded-full border-3 border-primary border-t-transparent animate-spin" />
+            <span className="text-sm text-muted-foreground animate-pulse">Verificando...</span>
+          </div>
+        ) : (
+          <button
+            onClick={handleClick}
+            disabled={countdown > 0}
+            className="w-full rounded-xl bg-primary py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {countdown > 0 ? `Aguarde ${countdown}s...` : "LIBERAR ACESSO"}
+          </button>
+        )}
 
         <p className="mt-4 text-xs text-muted-foreground/60">
           Sessões são verificadas a cada 40 minutos

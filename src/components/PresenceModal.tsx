@@ -4,26 +4,12 @@ const PRESENCE_INTERVAL_MS = 40 * 60 * 1000; // 40 minutes
 const STORAGE_KEY = "presence_last_validated";
 
 export function usePresenceCheck() {
-  const [blocked, setBlocked] = useState(false);
+  const [blocked, setBlocked] = useState(true); // blocked on first load
 
   useEffect(() => {
-    const lastValidated = localStorage.getItem(STORAGE_KEY);
-    const now = Date.now();
-
-    if (lastValidated) {
-      const elapsed = now - parseInt(lastValidated, 10);
-      if (elapsed >= PRESENCE_INTERVAL_MS) {
-        setBlocked(true);
-        return;
-      }
-      const remaining = PRESENCE_INTERVAL_MS - elapsed;
-      const timer = setTimeout(() => setBlocked(true), remaining);
-      return () => clearTimeout(timer);
-    } else {
-      localStorage.setItem(STORAGE_KEY, String(now));
-      const timer = setTimeout(() => setBlocked(true), PRESENCE_INTERVAL_MS);
-      return () => clearTimeout(timer);
-    }
+    if (blocked) return; // don't start timer while blocked
+    const timer = setTimeout(() => setBlocked(true), PRESENCE_INTERVAL_MS);
+    return () => clearTimeout(timer);
   }, [blocked]);
 
   const validate = () => {

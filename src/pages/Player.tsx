@@ -42,6 +42,7 @@ const Player = () => {
   const [showControls, setShowControls] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { blocked, validate } = usePresenceCheck();
 
   const { data } = useQuery({
     queryKey: ["channels"],

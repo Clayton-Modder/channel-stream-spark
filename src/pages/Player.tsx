@@ -37,6 +37,8 @@ const Player = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const channelId = params.get("id") || "";
+  const streamUrl = params.get("stream") || "";
+  const streamTitle = params.get("title") || "";
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);

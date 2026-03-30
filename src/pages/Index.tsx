@@ -95,6 +95,9 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Games of the day */}
+        <GamesSection />
+
         {/* Categories */}
         {data?.categories && (
           <CategoryFilter

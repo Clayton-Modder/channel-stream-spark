@@ -228,6 +228,9 @@ const Player = () => {
         </div>
       </div>
 
+      {/* Presence validation modal */}
+      {blocked && <PresenceModal onValidate={validate} />}
+
       {/* Channel drawer */}
       {showDrawer && (
         <ChannelDrawer

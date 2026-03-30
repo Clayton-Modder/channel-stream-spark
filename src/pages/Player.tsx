@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import ChannelDrawer from "@/components/ChannelDrawer";
+import PresenceModal, { usePresenceCheck } from "@/components/PresenceModal";
 
 interface Channel {
   id: string;

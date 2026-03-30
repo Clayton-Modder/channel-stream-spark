@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import ChannelDrawer from "@/components/ChannelDrawer";
+import PresenceModal, { usePresenceCheck } from "@/components/PresenceModal";
 
 interface Channel {
   id: string;
@@ -41,6 +42,7 @@ const Player = () => {
   const [showControls, setShowControls] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { blocked, validate } = usePresenceCheck();
 
   const { data } = useQuery({
     queryKey: ["channels"],
@@ -225,6 +227,9 @@ const Player = () => {
           </button>
         </div>
       </div>
+
+      {/* Presence validation modal */}
+      {blocked && <PresenceModal onValidate={validate} />}
 
       {/* Channel drawer */}
       {showDrawer && (

@@ -9,6 +9,7 @@ import {
   ChevronDown,
   List,
   Settings,
+  Cast,
   X,
 } from "lucide-react";
 import ChannelDrawer from "@/components/ChannelDrawer";
@@ -183,6 +184,30 @@ const Player = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                try {
+                  const castContext = (window as any).cast?.framework?.CastContext?.getInstance();
+                  if (castContext) {
+                    castContext.requestSession();
+                  } else {
+                    // Fallback: use Presentation API
+                    if ('PresentationRequest' in window) {
+                      const req = new (window as any).PresentationRequest([current.url]);
+                      req.start().catch(() => {});
+                    } else {
+                      import('sonner').then(({ toast }) => toast.info('Chromecast não disponível neste navegador'));
+                    }
+                  }
+                } catch {
+                  import('sonner').then(({ toast }) => toast.info('Chromecast não disponível'));
+                }
+              }}
+              className="p-2 text-white/70 hover:text-white transition-colors"
+              title="Transmitir para TV"
+            >
+              <Cast className="w-5 h-5" />
+            </button>
             <button
               onClick={() => navigate("/settings")}
               className="p-2 text-white/70 hover:text-white transition-colors"

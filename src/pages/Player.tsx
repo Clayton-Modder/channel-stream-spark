@@ -9,6 +9,7 @@ import {
   ChevronDown,
   List,
   Settings,
+  Cast,
   X,
 } from "lucide-react";
 import ChannelDrawer from "@/components/ChannelDrawer";

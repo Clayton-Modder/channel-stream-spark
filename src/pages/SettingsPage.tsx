@@ -36,7 +36,7 @@ const SettingsPage = () => {
       color: "text-blue-400",
       action: () =>
         window.open(
-          "http://tvonlinehd.com.br/Vip/update-tvonlinehd.apk",
+          "https://play.google.com/store/apps/details?id=com.maxcanaisonline.cm&hl=pt",
           "_blank"
         ),
     },

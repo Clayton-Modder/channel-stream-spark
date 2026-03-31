@@ -57,35 +57,6 @@ const SettingsPage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-lg space-y-6">
-        {/* VIP Card */}
-        <div className="rounded-xl bg-gradient-to-br from-yellow-500/20 via-amber-500/10 to-orange-500/20 border border-yellow-500/30 p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-yellow-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-base">Atualizar Meu VIP</h2>
-              <p className="text-xs text-muted-foreground">
-                Acesso completo a todos os canais
-              </p>
-            </div>
-          </div>
-          <div className="flex items-end justify-between">
-            <div>
-              <span className="text-3xl font-extrabold text-yellow-400">
-                R$ 3,00
-              </span>
-              <span className="text-xs text-muted-foreground ml-1">/mês</span>
-            </div>
-            <button
-              onClick={() => toast.info("Redirecionando para pagamento...")}
-              className="px-5 py-2 rounded-lg bg-yellow-500 text-black font-bold text-sm hover:bg-yellow-400 transition-colors flex items-center gap-1.5"
-            >
-              Assinar
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
 
         {/* Settings list */}
         <div className="space-y-2">

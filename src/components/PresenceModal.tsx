@@ -1,18 +1,25 @@
 import { useState, useEffect } from "react";
 
 const PRESENCE_INTERVAL_MS = 40 * 60 * 1000;
+const STORAGE_KEY = "presence_validated_at";
 
 export function usePresenceCheck() {
-  const [blocked, setBlocked] = useState(true);
+  const [blocked, setBlocked] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return true;
+    return Date.now() - Number(saved) >= PRESENCE_INTERVAL_MS;
+  });
 
   useEffect(() => {
     if (blocked) return;
-    const timer = setTimeout(() => setBlocked(true), PRESENCE_INTERVAL_MS);
+    const remaining = PRESENCE_INTERVAL_MS - (Date.now() - Number(localStorage.getItem(STORAGE_KEY) || 0));
+    const timer = setTimeout(() => setBlocked(true), Math.max(remaining, 0));
     return () => clearTimeout(timer);
   }, [blocked]);
 
   const validate = () => {
     window.open("https://omg10.com/4/10807179", "_blank");
+    localStorage.setItem(STORAGE_KEY, String(Date.now()));
     setBlocked(false);
   };
 

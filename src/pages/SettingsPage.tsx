@@ -4,8 +4,9 @@ import {
   ArrowLeft,
   Trash2,
   RefreshCw,
-  Crown,
-  ExternalLink,
+  Bell,
+  Share2,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 

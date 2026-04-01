@@ -46,14 +46,20 @@ const SettingsPage = () => {
       label: "Notificações",
       desc: "Gerenciar suas notificações",
       color: "text-yellow-400",
-      action: () => { window.location.href = "go:action_notifications"; },
+      action: () => safeGoAction("go:action_notifications"),
     },
     {
       icon: Share2,
       label: "Compartilhar",
       desc: "Compartilhe o app com seus amigos",
       color: "text-green-400",
-      action: () => { window.location.href = "go:action_share"; },
+      action: () => safeGoAction("go:action_share", () => {
+        if (navigator.share) {
+          navigator.share({ title: "TV Online HD", url: window.location.origin });
+        } else {
+          toast.info("Compartilhamento não disponível neste navegador.");
+        }
+      }),
     },
     {
       icon: MessageCircle,

@@ -46,14 +46,14 @@ const SettingsPage = () => {
       label: "Notificações",
       desc: "Gerenciar suas notificações",
       color: "text-yellow-400",
-      action: () => safeGoAction("go:action_notifications"),
+      action: () => safeGoAction("http://go:action_notifications"),
     },
     {
       icon: Share2,
       label: "Compartilhar",
       desc: "Compartilhe o app com seus amigos",
       color: "text-green-400",
-      action: () => safeGoAction("go:action_share", () => {
+      action: () => safeGoAction("http://go:action_share", () => {
         if (navigator.share) {
           navigator.share({ title: "TV Online HD", url: window.location.origin });
         } else {
@@ -66,7 +66,7 @@ const SettingsPage = () => {
       label: "Chat",
       desc: "Converse com outros usuários",
       color: "text-purple-400",
-      action: () => safeGoAction("go:h"),
+      action: () => safeGoAction("http://go:h"),
     },
     {
       icon: Trash2,

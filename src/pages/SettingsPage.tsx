@@ -22,52 +22,27 @@ const SettingsPage = () => {
     toast.success("Cache limpo com sucesso!");
   };
 
-  const handleNotifications = () => {
-    if ("Notification" in window) {
-      Notification.requestPermission().then((perm) => {
-        if (perm === "granted") toast.success("Notificações ativadas!");
-        else toast.info("Notificações bloqueadas pelo navegador");
-      });
-    } else {
-      toast.error("Notificações não suportadas neste dispositivo");
-    }
-  };
-
-  const handleShare = async () => {
-    const shareData = {
-      title: "TV Online HD",
-      text: "Assista canais ao vivo grátis!",
-      url: "https://play.google.com/store/apps/details?id=com.maxcanaisonline.cm&hl=pt",
-    };
-    if (navigator.share) {
-      try { await navigator.share(shareData); } catch {}
-    } else {
-      await navigator.clipboard.writeText(shareData.url);
-      toast.success("Link copiado para a área de transferência!");
-    }
-  };
-
   const items = [
     {
       icon: Bell,
       label: "Notificações",
       desc: "Gerenciar suas notificações",
       color: "text-yellow-400",
-      action: handleNotifications,
+      action: () => { window.location.href = "go:action_notifications"; },
     },
     {
       icon: Share2,
       label: "Compartilhar",
       desc: "Compartilhe o app com seus amigos",
       color: "text-green-400",
-      action: handleShare,
+      action: () => { window.location.href = "go:action_share"; },
     },
     {
       icon: MessageCircle,
       label: "Chat",
       desc: "Converse com outros usuários",
       color: "text-purple-400",
-      action: () => navigate("/chat"),
+      action: () => { window.location.href = "go:h"; },
     },
     {
       icon: Trash2,

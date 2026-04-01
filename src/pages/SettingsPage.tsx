@@ -66,7 +66,7 @@ const SettingsPage = () => {
       label: "Chat",
       desc: "Converse com outros usuários",
       color: "text-purple-400",
-      action: () => { window.location.href = "go:h"; },
+      action: () => safeGoAction("go:h"),
     },
     {
       icon: Trash2,

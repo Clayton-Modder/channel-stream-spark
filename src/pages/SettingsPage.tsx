@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,33 +9,52 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+/**
+ * Detecta se está rodando dentro do AppCreator24
+ */
 const isAppCreator = () => {
   try {
-    // AppCreator24 WebView sets a custom user agent or supports go: scheme
-    return typeof (window as any).AppCreator !== 'undefined' || 
-           navigator.userAgent.includes('AppCreator') ||
-           (window as any).webkit?.messageHandlers?.AppCreator !== undefined;
-  } catch { return false; }
+    return (
+      typeof (window as any).AppCreator !== "undefined" ||
+      navigator.userAgent.includes("AppCreator") ||
+      typeof (window as any).webkit?.messageHandlers?.AppCreator !== "undefined"
+    );
+  } catch {
+    return false;
+  }
 };
 
+/**
+ * Executa ações do AppCreator com fallback seguro
+ */
 const safeGoAction = (goUrl: string, fallbackFn?: () => void) => {
-  try {
+  if (isAppCreator()) {
     window.location.href = goUrl;
-  } catch {
-    if (fallbackFn) fallbackFn();
-    else toast.error("Esta função só está disponível no aplicativo.");
+  } else {
+    if (fallbackFn) {
+      fallbackFn();
+    } else {
+      toast.error("Esta função só funciona dentro do aplicativo.");
+    }
   }
 };
 
 const SettingsPage = () => {
   const navigate = useNavigate();
 
+  /**
+   * Limpar cache
+   */
   const clearCache = () => {
     if ("caches" in window) {
-      caches.keys().then((names) => names.forEach((n) => caches.delete(n)));
+      caches.keys().then((names) => {
+        names.forEach((name) => caches.delete(name));
+      });
     }
+
     localStorage.clear();
     sessionStorage.clear();
+
     toast.success("Cache limpo com sucesso!");
   };
 
@@ -46,39 +64,49 @@ const SettingsPage = () => {
       label: "Notificações",
       desc: "Gerenciar suas notificações",
       color: "text-yellow-400",
-      action: () => safeGoAction("go:action_notifications"),
+      action: () =>
+        safeGoAction("go:action_notifications", () => {
+          toast.info("Abra o app para acessar notificações.");
+        }),
     },
     {
       icon: Share2,
       label: "Compartilhar",
       desc: "Compartilhe o app com seus amigos",
       color: "text-green-400",
-      action: () => safeGoAction("go:action_share", () => {
-        if (navigator.share) {
-          navigator.share({ title: "TV Online HD", url: window.location.origin });
-        } else {
-          toast.info("Compartilhamento não disponível neste navegador.");
-        }
-      }),
+      action: () =>
+        safeGoAction("go:action_share", () => {
+          if (navigator.share) {
+            navigator.share({
+              title: "TV Online HD",
+              url: window.location.origin,
+            });
+          } else {
+            toast.info("Compartilhamento não disponível neste navegador.");
+          }
+        }),
     },
     {
       icon: MessageCircle,
       label: "Chat",
       desc: "Converse com outros usuários",
       color: "text-purple-400",
-      action: () => safeGoAction("go:h"),
+      action: () =>
+        safeGoAction("go:action_chat", () => {
+          toast.info("Chat disponível apenas no aplicativo.");
+        }),
     },
     {
       icon: Trash2,
       label: "Limpar Cache",
-      desc: "Remove dados temporários e recarrega",
+      desc: "Remove dados temporários",
       color: "text-orange-400",
       action: clearCache,
     },
     {
       icon: RefreshCw,
       label: "Atualizar App",
-      desc: "Baixar a versão mais recente do app",
+      desc: "Baixar versão mais recente",
       color: "text-blue-400",
       action: () =>
         window.open(
@@ -90,11 +118,12 @@ const SettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* HEADER */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
+            className="p-1.5 rounded-lg hover:bg-secondary transition"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -102,9 +131,8 @@ const SettingsPage = () => {
         </div>
       </header>
 
+      {/* CONTEÚDO */}
       <main className="container mx-auto px-4 py-6 max-w-lg space-y-6">
-
-        {/* Settings list */}
         <div className="space-y-2">
           {items.map((item) => (
             <button
@@ -117,9 +145,12 @@ const SettingsPage = () => {
               >
                 <item.icon className="w-5 h-5" />
               </div>
+
               <div className="flex-1">
                 <p className="text-sm font-semibold">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
+                <p className="text-xs text-muted-foreground">
+                  {item.desc}
+                </p>
               </div>
             </button>
           ))}

@@ -10,6 +10,24 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+const isAppCreator = () => {
+  try {
+    // AppCreator24 WebView sets a custom user agent or supports go: scheme
+    return typeof (window as any).AppCreator !== 'undefined' || 
+           navigator.userAgent.includes('AppCreator') ||
+           (window as any).webkit?.messageHandlers?.AppCreator !== undefined;
+  } catch { return false; }
+};
+
+const safeGoAction = (goUrl: string, fallbackFn?: () => void) => {
+  try {
+    window.location.href = goUrl;
+  } catch {
+    if (fallbackFn) fallbackFn();
+    else toast.error("Esta função só está disponível no aplicativo.");
+  }
+};
+
 const SettingsPage = () => {
   const navigate = useNavigate();
 

@@ -4,8 +4,9 @@ import {
   ArrowLeft,
   Trash2,
   RefreshCw,
-  Crown,
-  ExternalLink,
+  Bell,
+  Share2,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,6 +23,27 @@ const SettingsPage = () => {
   };
 
   const items = [
+    {
+      icon: Bell,
+      label: "Notificações",
+      desc: "Gerenciar suas notificações",
+      color: "text-yellow-400",
+      action: () => window.open("go:action_notifications", "_self"),
+    },
+    {
+      icon: Share2,
+      label: "Compartilhar",
+      desc: "Compartilhe o app com seus amigos",
+      color: "text-green-400",
+      action: () => window.open("go:action_share", "_self"),
+    },
+    {
+      icon: MessageCircle,
+      label: "Chat",
+      desc: "Converse com outros usuários",
+      color: "text-purple-400",
+      action: () => window.open("go:h", "_self"),
+    },
     {
       icon: Trash2,
       label: "Limpar Cache",

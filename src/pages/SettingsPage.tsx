@@ -10,6 +10,24 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+const isAppCreator = () => {
+  try {
+    // AppCreator24 WebView sets a custom user agent or supports go: scheme
+    return typeof (window as any).AppCreator !== 'undefined' || 
+           navigator.userAgent.includes('AppCreator') ||
+           (window as any).webkit?.messageHandlers?.AppCreator !== undefined;
+  } catch { return false; }
+};
+
+const safeGoAction = (goUrl: string, fallbackFn?: () => void) => {
+  try {
+    window.location.href = goUrl;
+  } catch {
+    if (fallbackFn) fallbackFn();
+    else toast.error("Esta função só está disponível no aplicativo.");
+  }
+};
+
 const SettingsPage = () => {
   const navigate = useNavigate();
 
@@ -28,21 +46,27 @@ const SettingsPage = () => {
       label: "Notificações",
       desc: "Gerenciar suas notificações",
       color: "text-yellow-400",
-      action: () => { window.location.href = "go:action_notifications"; },
+      action: () => safeGoAction("go:action_notifications"),
     },
     {
       icon: Share2,
       label: "Compartilhar",
       desc: "Compartilhe o app com seus amigos",
       color: "text-green-400",
-      action: () => { window.location.href = "go:action_share"; },
+      action: () => safeGoAction("go:action_share", () => {
+        if (navigator.share) {
+          navigator.share({ title: "TV Online HD", url: window.location.origin });
+        } else {
+          toast.info("Compartilhamento não disponível neste navegador.");
+        }
+      }),
     },
     {
       icon: MessageCircle,
       label: "Chat",
       desc: "Converse com outros usuários",
       color: "text-purple-400",
-      action: () => { window.location.href = "go:h"; },
+      action: () => safeGoAction("go:h"),
     },
     {
       icon: Trash2,

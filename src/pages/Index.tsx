@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tv, Settings, Star } from "lucide-react";
+import { Search, Tv, Star } from "lucide-react";
+import FloatingMenu from "@/components/FloatingMenu";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";

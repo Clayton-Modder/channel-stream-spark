@@ -143,6 +143,11 @@ const Index = () => {
             <p className="text-xs mt-1">Toque na ★ para adicionar favoritos.</p>
           </div>
         )}
+
+        <FloatingMenu
+          onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          showingFavorites={showFavoritesOnly}
+        />
       </main>
     </div>
   );

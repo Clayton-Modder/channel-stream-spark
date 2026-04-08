@@ -145,9 +145,23 @@ const SettingsPage = () => {
           ))}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground pt-4">
-          TV Online HD v1.0 • Todos os direitos reservados
-        </p>
+        <div className="flex items-center justify-center gap-2 pt-4">
+          <span className={`w-2 h-2 rounded-full ${
+            typeof (window as any).AppCreator !== "undefined" ||
+            navigator.userAgent.includes("AppCreator") ||
+            typeof (window as any).webkit?.messageHandlers?.AppCreator !== "undefined"
+              ? "bg-green-500"
+              : "bg-yellow-500"
+          }`} />
+          <p className="text-xs text-muted-foreground">
+            {typeof (window as any).AppCreator !== "undefined" ||
+            navigator.userAgent.includes("AppCreator") ||
+            typeof (window as any).webkit?.messageHandlers?.AppCreator !== "undefined"
+              ? "Rodando no AppCreator24"
+              : "Rodando no Navegador"}
+            {" • "}TV Online HD v1.0
+          </p>
+        </div>
       </main>
     </div>
   );

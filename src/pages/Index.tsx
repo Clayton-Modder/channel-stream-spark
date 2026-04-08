@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tv, Settings, Star } from "lucide-react";
+import { Search, Tv, Star } from "lucide-react";
+import FloatingMenu from "@/components/FloatingMenu";
 import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";
@@ -84,12 +85,6 @@ const Index = () => {
             >
               <Star className={`w-5 h-5 ${showFavoritesOnly ? "fill-yellow-400" : ""}`} />
             </button>
-            <button
-              onClick={() => navigate("/settings")}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>
@@ -148,6 +143,11 @@ const Index = () => {
             <p className="text-xs mt-1">Toque na ★ para adicionar favoritos.</p>
           </div>
         )}
+
+        <FloatingMenu
+          onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          showingFavorites={showFavoritesOnly}
+        />
       </main>
     </div>
   );

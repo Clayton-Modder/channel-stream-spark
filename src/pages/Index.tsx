@@ -85,12 +85,6 @@ const Index = () => {
             >
               <Star className={`w-5 h-5 ${showFavoritesOnly ? "fill-yellow-400" : ""}`} />
             </button>
-            <button
-              onClick={() => navigate("/settings")}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>

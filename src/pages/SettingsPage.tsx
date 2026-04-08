@@ -10,32 +10,21 @@ import {
 import { toast } from "sonner";
 
 /**
- * Detecta se está rodando dentro do AppCreator24
- */
-const isAppCreator = () => {
-  try {
-    return (
-      typeof (window as any).AppCreator !== "undefined" ||
-      navigator.userAgent.includes("AppCreator") ||
-      typeof (window as any).webkit?.messageHandlers?.AppCreator !== "undefined"
-    );
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Executa ações do AppCreator com fallback seguro
+ * Executa ações via http://go: para AppCreator24
+ * Usa try/catch + timeout para detectar falha
  */
 const safeGoAction = (goUrl: string, fallbackFn?: () => void) => {
-  if (isAppCreator()) {
-    window.location.href = goUrl;
-  } else {
-    if (fallbackFn) {
-      fallbackFn();
-    } else {
-      toast.error("Esta função só funciona dentro do aplicativo.");
-    }
+  try {
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = `http://go:${goUrl}`;
+    document.body.appendChild(iframe);
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 500);
+  } catch {
+    if (fallbackFn) fallbackFn();
+    else toast.error("Esta função só funciona dentro do aplicativo.");
   }
 };
 
@@ -65,7 +54,7 @@ const SettingsPage = () => {
       desc: "Gerenciar suas notificações",
       color: "text-yellow-400",
       action: () =>
-        safeGoAction("go:action_notifications", () => {
+        safeGoAction("action_notifications", () => {
           toast.info("Abra o app para acessar notificações.");
         }),
     },
@@ -75,7 +64,7 @@ const SettingsPage = () => {
       desc: "Compartilhe o app com seus amigos",
       color: "text-green-400",
       action: () =>
-        safeGoAction("go:action_share", () => {
+        safeGoAction("action_share", () => {
           if (navigator.share) {
             navigator.share({
               title: "TV Online HD",
@@ -92,7 +81,7 @@ const SettingsPage = () => {
       desc: "Converse com outros usuários",
       color: "text-purple-400",
       action: () =>
-        safeGoAction("go:action_chat", () => {
+        safeGoAction("action_chat", () => {
           toast.info("Chat disponível apenas no aplicativo.");
         }),
     },

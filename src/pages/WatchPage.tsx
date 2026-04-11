@@ -163,11 +163,6 @@ const WatchPage = () => {
           className="pointer-events-auto absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
           onClick={(e) => e.stopPropagation()}
         >
-          <video
-            ref={videoRef}
-            className="hidden"
-          />
-          {/* Simple play/pause + progress */}
           <VideoControls videoRef={videoRef} />
         </div>
       </div>

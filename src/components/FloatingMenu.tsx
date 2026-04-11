@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, X, Settings, Star, Share2, Bell, Trash2 } from "lucide-react";
+import { Plus, X, Settings, Star, Share2, Bell, Trash2, Film } from "lucide-react";
 import { toast } from "sonner";
 
 const safeGoAction = (action: string, fallbackFn?: () => void) => {
@@ -26,6 +26,12 @@ const FloatingMenu = ({ onToggleFavorites, showingFavorites }: FloatingMenuProps
   const navigate = useNavigate();
 
   const items = [
+    {
+      icon: Film,
+      label: "Filmes & Séries",
+      color: "bg-purple-500",
+      action: () => { navigate("/catalog"); setOpen(false); },
+    },
     {
       icon: Star,
       label: "Favoritos",

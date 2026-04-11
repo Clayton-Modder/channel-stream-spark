@@ -20,7 +20,7 @@ interface Game {
   players: string[];
 }
 
-const STREAM_DOMAIN = "https://joel.embedtv.best";
+const STREAM_DOMAIN = "https://joel.embedtv.cv";
 
 const rewriteStreamUrl = (url: string): string => {
   try {
@@ -49,7 +49,7 @@ const GamesSection = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://embedtv.best/jogos.php")
+    fetch("https://embedtv.cv/jogos.php")
       .then((res) => res.json())
       .then((data) => {
         setGames(Array.isArray(data) ? data : []);

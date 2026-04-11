@@ -31,8 +31,10 @@ const TABS: { key: TabType; label: string; icon: React.ReactNode }[] = [
 const fetchCatalog = async (type: TabType): Promise<CatalogItem[]> => {
   const res = await fetch(`${API_BASE}${type}`);
   if (!res.ok) throw new Error("Falha ao carregar catálogo");
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  const json = await res.json();
+  if (json?.data && Array.isArray(json.data)) return json.data;
+  if (Array.isArray(json)) return json;
+  return [];
 };
 
 const CatalogPage = () => {

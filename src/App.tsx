@@ -8,6 +8,7 @@ import Player from "./pages/Player.tsx";
 import SettingsPage from "./pages/SettingsPage.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
+import CatalogPage from "./pages/CatalogPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/catalog" element={<CatalogPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

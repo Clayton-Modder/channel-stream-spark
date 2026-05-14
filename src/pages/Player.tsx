@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import ChannelDrawer from "@/components/ChannelDrawer";
 import PresenceModal, { usePresenceCheck } from "@/components/PresenceModal";
+import { useChromecast } from "@/hooks/useChromecast";
+import { useRecentChannels } from "@/hooks/useRecentChannels";
+import { toast } from "sonner";
 
 interface Channel {
   id: string;
@@ -46,6 +49,9 @@ const Player = () => {
   const [showDrawer, setShowDrawer] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const { blocked, validate } = usePresenceCheck();
+  const { available: castAvailable, casting, connecting: castConnecting, castTo, stop: stopCast } = useChromecast();
+  const { addRecent } = useRecentChannels();
+  const recordedRef = useRef(false);
 
   const isStreamMode = !!streamUrl;
 
@@ -62,8 +68,21 @@ const Player = () => {
     ? { id: "stream", name: streamTitle || "Transmissão", image: "", categories: [], url: streamUrl }
     : channels[currentIndex];
 
+  // Record this channel in recent history once
+  useEffect(() => {
+    if (!current || recordedRef.current || isStreamMode) return;
+    recordedRef.current = true;
+    addRecent({
+      id: current.id,
+      name: current.name,
+      image: current.image,
+      url: current.url,
+    });
+  }, [current, isStreamMode, addRecent]);
+
   const goTo = useCallback(
     (ch: Channel) => {
+      recordedRef.current = false;
       navigate(`/player?id=${ch.id}`, { replace: true });
       setShowDrawer(false);
     },
@@ -120,6 +139,29 @@ const Player = () => {
     return () => window.removeEventListener("keydown", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, channels, showDrawer]);
+
+  const handleCast = async () => {
+    if (!current) return;
+
+    if (casting) {
+      stopCast();
+      toast.info("Transmissão encerrada");
+      return;
+    }
+
+    if (!castAvailable) {
+      toast.info("Chromecast não detectado. Verifique se o dispositivo está na mesma rede.");
+      return;
+    }
+
+    toast.info("Conectando ao Chromecast...");
+    const ok = await castTo(current.url, current.name);
+    if (ok) {
+      toast.success(`Transmitindo "${current.name}" para o Chromecast`);
+    } else {
+      toast.error("Não foi possível transmitir. Verifique se o Chromecast está disponível.");
+    }
+  };
 
   if (!current) {
     return (
@@ -184,27 +226,16 @@ const Player = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            {/* Chromecast button — shown when SDK is available OR as fallback */}
             <button
-              onClick={() => {
-                try {
-                  const castContext = (window as any).cast?.framework?.CastContext?.getInstance();
-                  if (castContext) {
-                    castContext.requestSession();
-                  } else {
-                    // Fallback: use Presentation API
-                    if ('PresentationRequest' in window) {
-                      const req = new (window as any).PresentationRequest([current.url]);
-                      req.start().catch(() => {});
-                    } else {
-                      import('sonner').then(({ toast }) => toast.info('Chromecast não disponível neste navegador'));
-                    }
-                  }
-                } catch {
-                  import('sonner').then(({ toast }) => toast.info('Chromecast não disponível'));
-                }
-              }}
-              className="p-2 text-white/70 hover:text-white transition-colors"
-              title="Transmitir para TV"
+              onClick={handleCast}
+              disabled={castConnecting}
+              className={`p-2 transition-colors disabled:opacity-50 ${
+                casting
+                  ? "text-blue-400 hover:text-blue-300"
+                  : "text-white/70 hover:text-white"
+              }`}
+              title={casting ? "Parar transmissão" : "Transmitir para TV (Chromecast)"}
             >
               <Cast className="w-5 h-5" />
             </button>
@@ -259,6 +290,17 @@ const Player = () => {
           </button>
         </div>
       </div>
+
+      {/* Casting indicator */}
+      {casting && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/90 text-white text-xs font-medium">
+          <Cast className="w-3.5 h-3.5 animate-pulse" />
+          Transmitindo para Chromecast
+          <button onClick={stopCast} className="ml-1 hover:text-white/70">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Presence validation modal */}
       {blocked && <PresenceModal onValidate={validate} />}

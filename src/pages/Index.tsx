@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import CategoryFilter from "@/components/CategoryFilter";
 import ChannelCard from "@/components/ChannelCard";
 import GamesSection from "@/components/GamesSection";
+import RecentChannels from "@/components/RecentChannels";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useRecentChannels } from "@/hooks/useRecentChannels";
 
 interface Channel {
   id: string;
@@ -42,6 +44,7 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isFavorite, toggleFavorite, favorites } = useFavorites();
+  const { recent, clearRecent } = useRecentChannels();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["channels"],
@@ -90,6 +93,11 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Recently watched */}
+        {recent.length > 0 && (
+          <RecentChannels channels={recent} onClear={clearRecent} />
+        )}
+
         {/* Games of the day */}
         <GamesSection />
 

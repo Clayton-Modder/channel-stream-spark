@@ -49,7 +49,7 @@ const GamesSection = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://embedtv.live/jogos.php")
+    fetch("https://embedtv.lat/jogos.php")
       .then((res) => res.json())
       .then((data) => {
         setGames(Array.isArray(data) ? data : []);

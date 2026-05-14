@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Clock, ChevronRight } from "lucide-react";
+import { Trophy, Clock, Bell, BellOff } from "lucide-react";
+import { useGameFavorites, FavoriteGame } from "@/hooks/useGameFavorites";
+import { toast } from "sonner";
 
 interface GameTeam {
   name: string;
@@ -20,7 +22,7 @@ interface Game {
   players: string[];
 }
 
-const STREAM_DOMAIN = "https://maxsaidapp.embedtv.lat";
+const STREAM_DOMAIN = import.meta.env.VITE_STREAM_DOMAIN ?? "https://maxsaidapp.embedtv.lat";
 
 const rewriteStreamUrl = (url: string): string => {
   try {
@@ -43,13 +45,17 @@ const getGameStatus = (start: number, end: number): "upcoming" | "live" | "ended
   return "live";
 };
 
+const makeGameId = (game: Game): string =>
+  `${game.data.teams.home.name}-${game.data.teams.away.name}-${game.data.timer.start}`;
+
 const GamesSection = () => {
   const navigate = useNavigate();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isFavorite, toggleFavorite } = useGameFavorites();
 
   useEffect(() => {
-    fetch("https://embedtv.lat/jogos.php")
+    fetch(import.meta.env.VITE_GAMES_API_URL ?? "https://embedtv.lat/jogos.php")
       .then((res) => res.json())
       .then((data) => {
         setGames(Array.isArray(data) ? data : []);
@@ -64,6 +70,32 @@ const GamesSection = () => {
     if (!game.players?.length) return;
     const streamUrl = rewriteStreamUrl(game.players[0]);
     navigate(`/player?stream=${encodeURIComponent(streamUrl)}&title=${encodeURIComponent(game.title)}`);
+  };
+
+  const handleToggleFavorite = async (e: React.MouseEvent, game: Game) => {
+    e.stopPropagation();
+    const id = makeGameId(game);
+    const fav: FavoriteGame = {
+      id,
+      title: game.title,
+      start: game.data.timer.start,
+    };
+    const wasAlready = isFavorite(id);
+    await toggleFavorite(fav);
+
+    if (wasAlready) {
+      toast.info(`Notificação removida para "${game.title}"`);
+    } else {
+      const status = getGameStatus(game.data.timer.start, game.data.timer.end);
+      if (status === "upcoming") {
+        toast.success(
+          `Você será notificado 5 min antes de "${game.title}" começar`,
+          { duration: 4000 }
+        );
+      } else {
+        toast.info(`"${game.title}" adicionado aos favoritos`);
+      }
+    }
   };
 
   if (loading) {
@@ -93,15 +125,36 @@ const GamesSection = () => {
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {games.map((game, i) => {
           const status = getGameStatus(game.data.timer.start, game.data.timer.end);
+          const gameId = makeGameId(game);
+          const favored = isFavorite(gameId);
+
           return (
             <button
               key={i}
               onClick={() => handlePlay(game)}
               disabled={!game.players?.length}
-              className="min-w-[300px] flex-shrink-0 bg-card border border-border rounded-xl p-3 hover:border-primary/50 hover:bg-card/80 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="min-w-[300px] flex-shrink-0 bg-card border border-border rounded-xl p-3 hover:border-primary/50 hover:bg-card/80 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed group relative"
             >
+              {/* Favorite/notification bell */}
+              <span
+                role="button"
+                onClick={(e) => handleToggleFavorite(e, game)}
+                className={`absolute top-2 right-2 p-1 rounded-full transition-colors z-10 pointer-events-auto ${
+                  favored
+                    ? "text-yellow-400 bg-yellow-400/10"
+                    : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-black/10"
+                }`}
+                title={favored ? "Remover notificação" : "Receber notificação"}
+              >
+                {favored ? (
+                  <Bell className="w-4 h-4 fill-yellow-400" />
+                ) : (
+                  <BellOff className="w-4 h-4" />
+                )}
+              </span>
+
               {/* League + Status */}
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 pr-6">
                 <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
                   {game.data.league}
                 </span>
@@ -147,8 +200,6 @@ const GamesSection = () => {
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                   />
                 </div>
-
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
               </div>
             </button>
           );

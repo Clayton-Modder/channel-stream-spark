@@ -13,7 +13,7 @@ interface Episode {
   stream_url: string;
 }
 
-const API_BASE = "https://cinetvembed.bond/api/catalog.php?username=TVOnlineHD-vods&password=js7vHAsc&type=";
+const API_BASE = import.meta.env.VITE_CATALOG_API_URL ?? "https://cinetvembed.bond/api/catalog.php?username=TVOnlineHD-vods&password=js7vHAsc&type=";
 
 const DetailPage = () => {
   const { id } = useParams();

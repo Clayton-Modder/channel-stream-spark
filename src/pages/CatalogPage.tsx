@@ -30,7 +30,7 @@ export interface CatalogItem {
 
 type TabType = "movies" | "series" | "animes";
 
-const API_BASE = "https://cinetvembed.bond/api/catalog.php?username=TVOnlineHD-vods&password=js7vHAsc&type=";
+const API_BASE = import.meta.env.VITE_CATALOG_API_URL ?? "https://cinetvembed.bond/api/catalog.php?username=TVOnlineHD-vods&password=js7vHAsc&type=";
 
 const TABS: { key: TabType; label: string; icon: React.ReactNode }[] = [
   { key: "movies", label: "Filmes", icon: <Film className="w-4 h-4" /> },

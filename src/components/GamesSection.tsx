@@ -20,7 +20,7 @@ interface Game {
   players: string[];
 }
 
-const STREAM_DOMAIN = "https://maxsaidapp.embedtv.live";
+const STREAM_DOMAIN = "https://maxsaidapp.embedtv.lat";
 
 const rewriteStreamUrl = (url: string): string => {
   try {

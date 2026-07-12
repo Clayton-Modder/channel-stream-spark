@@ -1,4 +1,4 @@
--- === NEON HUB v16 - MENU TOTALMENTE VISÍVEL ===
+-- === NEON HUB v19 - ANTI-DETECÇÃO ATIVADO ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -8,15 +8,25 @@ local LocalPlayer = Players.LocalPlayer
 local Settings = {
     Aimbot = false,
     FOV = 100,
-    Smoothing = 0.12,
-    Speed = 55,
+    Smoothing = 0.13,      -- Mais humano
+    Speed = 50,
     Noclip = false,
     Fling = false,
     FlingAll = false,
     KillAura = false,
     AutoRevive = false,
     GodMode = false,
+    AntiDetect = true,     -- Sistema Anti-Detecção
 }
+
+-- ANTI-DETECÇÃO
+local detectionRisk = 0
+local lastAction = tick()
+
+local function AntiDetectDelay(min, max)
+    if not Settings.AntiDetect then return end
+    task.wait(math.random(min*10, max*10)/10)
+end
 
 -- GUI
 local ScreenGui = Instance.new("ScreenGui")
@@ -26,15 +36,15 @@ ScreenGui.Parent = game.CoreGui
 local Icon = Instance.new("TextButton")
 Icon.Size = UDim2.new(0,75,0,75)
 Icon.Position = UDim2.new(1,-100,0,30)
-Icon.BackgroundColor3 = Color3.fromRGB(200,0,0)
-Icon.Text = "🩸"
-Icon.TextSize = 40
+Icon.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+Icon.Text = "🛡️"
+Icon.TextSize = 38
 Icon.Parent = ScreenGui
 Instance.new("UICorner", Icon).CornerRadius = UDim.new(1,0)
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 400, 0, 650)
-Main.Position = UDim2.new(0.5, -200, 0.5, -325)
+Main.Size = UDim2.new(0, 410, 0, 720)
+Main.Position = UDim2.new(0.5, -205, 0.5, -360)
 Main.BackgroundColor3 = Color3.fromRGB(20,20,25)
 Main.Visible = false
 Main.Parent = ScreenGui
@@ -42,26 +52,37 @@ Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1,0,0,60)
-Title.BackgroundColor3 = Color3.fromRGB(180,0,0)
-Title.Text = "🩸 SOBREVIVA O ASSASSINO"
+Title.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+Title.Text = "🛡️ NEON HUB v19 - ANTI DETECT"
 Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 23
+Title.TextSize = 22
 Title.Parent = Main
 
--- Scrolling (Corrigido)
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.new(0,40,0,40)
+Close.Position = UDim2.new(1,-48,0,10)
+Close.BackgroundTransparency = 1
+Close.Text = "✕"
+Close.TextColor3 = Color3.new(1,1,1)
+Close.TextSize = 30
+Close.Parent = Title
+
+-- Scrolling
 local Scrolling = Instance.new("ScrollingFrame")
 Scrolling.Size = UDim2.new(1, -20, 1, -80)
 Scrolling.Position = UDim2.new(0, 10, 0, 70)
 Scrolling.BackgroundTransparency = 1
 Scrolling.ScrollBarThickness = 8
-Scrolling.ScrollBarImageColor3 = Color3.fromRGB(255,80,80)
-Scrolling.CanvasSize = UDim2.new(0,0,0,0)  -- Vai ajustar automaticamente
 Scrolling.Parent = Main
 
 local UIList = Instance.new("UIListLayout", Scrolling)
 UIList.Padding = UDim.new(0, 12)
 UIList.SortOrder = Enum.SortOrder.LayoutOrder
+
+UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Scrolling.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 40)
+end)
 
 local function Toggle(text, def, callback)
     local frame = Instance.new("Frame")
@@ -77,7 +98,6 @@ local function Toggle(text, def, callback)
     label.TextColor3 = Color3.new(1,1,1)
     label.Font = Enum.Font.GothamSemibold
     label.TextSize = 18
-    label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
     
     local btn = Instance.new("TextButton")
@@ -99,19 +119,18 @@ local function Toggle(text, def, callback)
     end)
 end
 
--- Todas as opções (agora visíveis)
 Toggle("Aimbot (Cabeça)", Settings.Aimbot, function(v) Settings.Aimbot = v end)
 Toggle("Auto Reviver", Settings.AutoRevive, function(v) Settings.AutoRevive = v end)
 Toggle("Kill Aura", Settings.KillAura, function(v) Settings.KillAura = v end)
 Toggle("God Mode", Settings.GodMode, function(v) Settings.GodMode = v end)
 Toggle("Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
 Toggle("Fling Mais Próximo", Settings.Fling, function(v) Settings.Fling = v end)
-Toggle("Fling Todos", Settings.FlingAll, function(v) Settings.FlingAll = v end)
+Toggle("Anti Detecção", Settings.AntiDetect, function(v) Settings.AntiDetect = v end)
 
--- Loop
+-- LOOP COM ANTI-DETECÇÃO
 RunService.RenderStepped:Connect(function()
     if Settings.Aimbot then
-        -- aimbot code (mantido)
+        AntiDetectDelay(0.01, 0.04)
         local best = nil
         local minDist = Settings.FOV
         local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
@@ -136,8 +155,8 @@ RunService.RenderStepped:Connect(function()
         if best then
             local tPos = Camera:WorldToViewportPoint(best.Position)
             local mPos = UserInputService:GetMouseLocation()
-            local dx = (tPos.X - mPos.X) * Settings.Smoothing * 1.8
-            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * 1.8
+            local dx = (tPos.X - mPos.X) * Settings.Smoothing * 1.6
+            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * 1.6
             mousemoverel(dx, dy)
         end
     end
@@ -156,9 +175,12 @@ RunService.RenderStepped:Connect(function()
     if Settings.KillAura then
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (plr.Character.HumanoidRootPart.Position - (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position or Vector3.new())).Magnitude
-                if dist < 25 then
-                    plr.Character.Humanoid:TakeDamage(30)
+                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if myRoot then
+                    local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
+                    if dist < 22 then
+                        plr.Character.Humanoid:TakeDamage(25)
+                    end
                 end
             end
         end
@@ -174,7 +196,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Abrir/Fechar
+-- Controles
 Icon.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
 Close.MouseButton1Click:Connect(function() Main.Visible = false end)
 
@@ -184,4 +206,5 @@ UserInputService.InputBegan:Connect(function(i)
     end
 end)
 
-print("✅ MENU CORRIGIDO - Todas as opções visíveis!")
+print("✅ ANTI-DETECÇÃO ATIVADO!")
+print("Use com moderação para evitar ban")

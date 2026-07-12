@@ -1,4 +1,4 @@
--- 🔥 MENU ATUALIZADO + VIDA INFINITA
+-- 🔥 MENU ATUALIZADO - AIMKILL + VIDA INFINITA FIXADA
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -10,10 +10,10 @@ local aimbotEnabled = true
 local magicBulletEnabled = true
 local pullEnabled = true
 local noclipEnabled = false
-local freezeEnabled = false
-local infiniteHealthEnabled = true  -- Nova função
+local aimKillEnabled = false
+local infiniteHealthEnabled = true
 
--- ÍCONE FLUTUANTE
+-- ÍCONE
 local Icon = Instance.new("TextButton")
 Icon.Size = UDim2.new(0, 70, 0, 70)
 Icon.Position = UDim2.new(0, 15, 0.4, 0)
@@ -77,29 +77,44 @@ local function CreateSwitch(text, yPos, default, callback)
     end)
 end
 
--- Switches
 CreateSwitch("🔫 Aimbot Visual", 70, true, function(v) aimbotEnabled = v end)
 CreateSwitch("💥 Bala Mágica", 135, true, function(v) magicBulletEnabled = v end)
 CreateSwitch("❤️ Vida Infinita", 200, true, function(v) infiniteHealthEnabled = v end)
-CreateSwitch("🧲 Puxar Itens", 265, true, function(v) pullEnabled = v end)
-CreateSwitch("👻 Noclip", 330, false, function(v) noclipEnabled = v end)
-CreateSwitch("❄️ Congelar Jogadores", 395, false, function(v) freezeEnabled = v end)
+CreateSwitch("☠️ AimKill (Causar Dano)", 265, false, function(v) aimKillEnabled = v end)
+CreateSwitch("🧲 Puxar Itens", 330, true, function(v) pullEnabled = v end)
+CreateSwitch("👻 Noclip", 395, false, function(v) noclipEnabled = v end)
 
--- Ícone abre menu
 Icon.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
 end)
 
--- === VIDA INFINITA ===
+-- === VIDA INFINITA (Melhorada) ===
 RunService.Heartbeat:Connect(function()
     if not infiniteHealthEnabled then return end
-    local character = LocalPlayer.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.MaxHealth = 100000
-            humanoid.Health = 100000
-            humanoid.HealthDisplayDistance = 0  -- Esconde a barra de vida
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChild("Humanoid")
+        if hum then
+            hum.MaxHealth = math.huge
+            hum.Health = math.huge
+            hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+        end
+    end
+end)
+
+-- === AIMKILL (Causar Dano nos Próximos) ===
+RunService.Heartbeat:Connect(function()
+    if not aimKillEnabled then return end
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+            local dist = (myRoot.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= 40 then  -- Raio de 40 studs
+                local hum = plr.Character.Humanoid
+                hum:TakeDamage(25)  -- Dano por tick
+            end
         end
     end
 end)
@@ -110,16 +125,16 @@ local old = mt.__namecall
 setreadonly(mt, false)
 mt.__namecall = newcclosure(function(self, ...)
     local args = {...}
-    if magicBulletEnabled and (getnamecallmethod() == "FireServer") then
+    if magicBulletEnabled and getnamecallmethod() == "FireServer" then
         local name = self.Name:lower()
-        if name:find("bullet") or name:find("shoot") or name:find("gun") then
+        if name:find("bullet") or name:find("shoot") or name:find("gun") or name:find("fire") then
             local closest = nil
             local minDist = 9999
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-                    local dist = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.Head.Position).Magnitude
-                    if dist < minDist then
-                        minDist = dist
+                    local d = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.Head.Position).Magnitude
+                    if d < minDist then
+                        minDist = d
                         closest = plr
                     end
                 end
@@ -133,11 +148,27 @@ mt.__namecall = newcclosure(function(self, ...)
 end)
 setreadonly(mt, true)
 
--- Outras funções (Aimbot, Congelar, etc.)
+-- Aimbot Visual + Outras funções
 RunService.RenderStepped:Connect(function()
     if not aimbotEnabled then return end
-    -- ... (aimbot visual)
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        local closest = nil
+        local minDist = 200
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                local d = (root.Position - plr.Character.Head.Position).Magnitude
+                if d < minDist then
+                    minDist = d
+                    closest = plr
+                end
+            end
+        end
+        if closest then
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.lookAt(Camera.CFrame.Position, closest.Character.Head.Position), 0.12)
+        end
+    end
 end)
 
-print("✅ MENU COM VIDA INFINITA CARREGADO!")
-print("Clique no ⚡ rosa para abrir o menu")
+print("✅ MENU ATUALIZADO!")
+print("Clique no ⚡ para abrir")

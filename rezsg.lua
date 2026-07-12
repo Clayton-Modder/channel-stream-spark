@@ -1,4 +1,4 @@
--- === NEON AIM HUB v10 - COM FLING (Joga pra fora do mapa) ===
+-- === NEON AIM HUB v11 - FLING CORRIGIDO + TUDO MANTIDO ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -14,11 +14,11 @@ local Settings = {
     ShowFOV = true,
     Speed = 50,
     Noclip = false,
-    Fling = false,
-    FlingAll = false,
+    Fling = false,      -- Fling no jogador mais próximo
+    FlingAll = false,   -- Fling em todos
 }
 
--- GUI (mesma base)
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
@@ -33,8 +33,8 @@ Icon.Parent = ScreenGui
 Instance.new("UICorner", Icon).CornerRadius = UDim.new(1,0)
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 390, 0, 580)
-Main.Position = UDim2.new(0.5, -195, 0.5, -290)
+Main.Size = UDim2.new(0, 390, 0, 620)
+Main.Position = UDim2.new(0.5, -195, 0.5, -310)
 Main.BackgroundColor3 = Color3.fromRGB(18,18,25)
 Main.Visible = false
 Main.Parent = ScreenGui
@@ -43,7 +43,7 @@ Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1,0,0,55)
 Title.BackgroundColor3 = Color3.fromRGB(255,50,50)
-Title.Text = "🔥 NEON HUB v10"
+Title.Text = "🔥 NEON HUB v11"
 Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 23
@@ -65,7 +65,7 @@ Scrolling.Size = UDim2.new(1,-20,1,-70)
 Scrolling.Position = UDim2.new(0,10,0,65)
 Scrolling.BackgroundTransparency = 1
 Scrolling.ScrollBarThickness = 6
-Scrolling.CanvasSize = UDim2.new(0,0,0,850)
+Scrolling.CanvasSize = UDim2.new(0,0,0,950)
 Scrolling.Parent = Main
 
 local List = Instance.new("UIListLayout", Scrolling)
@@ -110,28 +110,59 @@ Toggle("Aimbot (Cabeça)", Settings.Aimbot, function(v) Settings.Aimbot = v end)
 Toggle("Mostrar FOV", Settings.ShowFOV, function(v) Settings.ShowFOV = v end)
 Toggle("Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
 Toggle("Fling Mais Próximo", Settings.Fling, function(v) Settings.Fling = v end)
-Toggle("Fling Todos (CUIDADO)", Settings.FlingAll, function(v) Settings.FlingAll = v end)
+Toggle("Fling Todos", Settings.FlingAll, function(v) Settings.FlingAll = v end)
+Toggle("Speed Boost", true, function(v) 
+    if not v then Settings.Speed = 50 end
+end)
 
-local SpeedSlider = Instance.new("TextLabel") -- simplificado para speed
--- (pode adicionar slider completo se quiser)
+-- Botão Teleport
+local TpBtn = Instance.new("TextButton")
+TpBtn.Size = UDim2.new(1,-20,0,50)
+TpBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+TpBtn.Text = "Teleport para Jogador Mais Próximo"
+TpBtn.TextColor3 = Color3.new(1,1,1)
+TpBtn.Font = Enum.Font.GothamBold
+TpBtn.TextSize = 16
+TpBtn.Parent = Scrolling
+Instance.new("UICorner", TpBtn).CornerRadius = UDim.new(0,12)
 
--- FLING LOGIC
-local function FlingPlayer(target)
-    if not target or not target:FindFirstChild("HumanoidRootPart") then return end
-    local root = target.HumanoidRootPart
+TpBtn.MouseButton1Click:Connect(function()
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+    
+    local closest, minDist = nil, math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closest = plr.Character.HumanoidRootPart
+            end
+        end
+    end
+    if closest then
+        myRoot.CFrame = closest.CFrame + Vector3.new(0,5,0)
+    end
+end)
+
+-- FLING CORRIGIDO (Mais forte)
+local function Fling(targetChar)
+    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then return end
+    local root = targetChar.HumanoidRootPart
     local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    bv.Velocity = Vector3.new(math.random(-200,200), 100, math.random(-200,200))
+    bv.Name = "FlingVelocity"
+    bv.MaxForce = Vector3.new(0, math.huge, 0)
+    bv.Velocity = Vector3.new(math.random(-80,80), 150, math.random(-80,80))
     bv.Parent = root
-    game.Debris:AddItem(bv, 1.5)
+    
+    game.Debris:AddItem(bv, 0.8)
 end
 
 RunService.RenderStepped:Connect(function()
-    -- Aimbot (mantido)
+    -- Aimbot
     if Settings.Aimbot then
-        -- ... (código do aimbot anterior)
-        local bestTarget = nil
-        local closestDist = Settings.FOV
+        local best = nil
+        local minDist = Settings.FOV
         local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
         
         for _, plr in ipairs(Players:GetPlayers()) do
@@ -139,52 +170,50 @@ RunService.RenderStepped:Connect(function()
                 if Settings.TeamCheck and plr.Team == LocalPlayer.Team then continue end
                 local head = plr.Character:FindFirstChild("Head")
                 if head then
-                    local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-                    if onScreen then
+                    local pos, onScr = Camera:WorldToViewportPoint(head.Position)
+                    if onScr then
                         local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
-                        if dist < closestDist then
-                            closestDist = dist
-                            bestTarget = head
+                        if dist < minDist then
+                            minDist = dist
+                            best = head
                         end
                     end
                 end
             end
         end
         
-        if bestTarget then
-            local targetPos = Camera:WorldToViewportPoint(bestTarget.Position)
-            local mouse = UserInputService:GetMouseLocation()
-            local deltaX = (targetPos.X - mouse.X) * Settings.Smoothing * Settings.Strength
-            local deltaY = (targetPos.Y - mouse.Y) * Settings.Smoothing * Settings.Strength
-            mousemoverel(deltaX, deltaY)
+        if best then
+            local tPos = Camera:WorldToViewportPoint(best.Position)
+            local mPos = UserInputService:GetMouseLocation()
+            local dx = (tPos.X - mPos.X) * Settings.Smoothing * Settings.Strength
+            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * Settings.Strength
+            mousemoverel(dx, dy)
         end
     end
     
-    -- Fling Mais Próximo
+    -- Fling
     if Settings.Fling then
         local closest = nil
-        local minDist = math.huge
+        local minD = math.huge
         local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        
         if myRoot then
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
-                    if dist < minDist then
-                        minDist = dist
+                    local d = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
+                    if d < minD then
+                        minD = d
                         closest = plr.Character
                     end
                 end
             end
-            if closest then FlingPlayer(closest) end
+            if closest then Fling(closest) end
         end
     end
     
-    -- Fling Todos
     if Settings.FlingAll then
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LocalPlayer and plr.Character then
-                FlingPlayer(plr.Character)
+                Fling(plr.Character)
             end
         end
     end
@@ -193,8 +222,8 @@ RunService.RenderStepped:Connect(function()
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Speed
         if Settings.Noclip then
-            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part.CanCollide = false end
+            for _, p in pairs(LocalPlayer.Character:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
             end
         end
     end
@@ -208,5 +237,4 @@ UserInputService.InputBegan:Connect(function(i)
     if i.KeyCode == Enum.KeyCode.Insert then Main.Visible = not Main.Visible end
 end)
 
-print("✅ FLING ADICIONADO!")
-print("Cuidado com 'Fling Todos' - pode dar lag!")
+print("✅ FLING CORRIGIDO e tudo mantido!")

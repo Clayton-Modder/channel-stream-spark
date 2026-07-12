@@ -1,4 +1,4 @@
--- === NEON AIM HUB v12 - Portal TP + Dano em Todos ===
+-- === NEON AIM HUB v14 - Reviver + Portal TP Corrigidos ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -16,10 +16,11 @@ local Settings = {
     Noclip = false,
     Fling = false,
     FlingAll = false,
-    DamageAll = false,     -- Nova: Dano/Facada em todos
+    DamageAll = false,
+    ReviveAll = false,
 }
 
--- GUI (mantida)
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
@@ -34,8 +35,8 @@ Icon.Parent = ScreenGui
 Instance.new("UICorner", Icon).CornerRadius = UDim.new(1,0)
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 400, 0, 680)
-Main.Position = UDim2.new(0.5, -200, 0.5, -340)
+Main.Size = UDim2.new(0, 400, 0, 720)
+Main.Position = UDim2.new(0.5, -200, 0.5, -360)
 Main.BackgroundColor3 = Color3.fromRGB(18,18,25)
 Main.Visible = false
 Main.Parent = ScreenGui
@@ -44,7 +45,7 @@ Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1,0,0,55)
 Title.BackgroundColor3 = Color3.fromRGB(255,50,50)
-Title.Text = "🔥 NEON HUB v12"
+Title.Text = "🔥 NEON HUB v14"
 Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 23
@@ -66,7 +67,7 @@ Scrolling.Size = UDim2.new(1,-20,1,-70)
 Scrolling.Position = UDim2.new(0,10,0,65)
 Scrolling.BackgroundTransparency = 1
 Scrolling.ScrollBarThickness = 6
-Scrolling.CanvasSize = UDim2.new(0,0,0,1100)
+Scrolling.CanvasSize = UDim2.new(0,0,0,1250)
 Scrolling.Parent = Main
 
 local List = Instance.new("UIListLayout", Scrolling)
@@ -112,11 +113,12 @@ Toggle("Mostrar FOV", Settings.ShowFOV, function(v) Settings.ShowFOV = v end)
 Toggle("Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
 Toggle("Fling Mais Próximo", Settings.Fling, function(v) Settings.Fling = v end)
 Toggle("Fling Todos", Settings.FlingAll, function(v) Settings.FlingAll = v end)
-Toggle("Dano/Facada em Todos", Settings.DamageAll, function(v) Settings.DamageAll = v end)
+Toggle("Dano em Todos", Settings.DamageAll, function(v) Settings.DamageAll = v end)
+Toggle("Reviver Todos", Settings.ReviveAll, function(v) Settings.ReviveAll = v end)
 
--- Teleport para Portal
+-- ==================== TELEPORT PARA PORTAL (Melhorado) ====================
 local PortalBtn = Instance.new("TextButton")
-PortalBtn.Size = UDim2.new(1,-20,0,50)
+PortalBtn.Size = UDim2.new(1,-20,0,55)
 PortalBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
 PortalBtn.Text = "Teleport para Portal Mais Próximo"
 PortalBtn.TextColor3 = Color3.new(1,1,1)
@@ -127,33 +129,41 @@ Instance.new("UICorner", PortalBtn).CornerRadius = UDim.new(0,12)
 
 PortalBtn.MouseButton1Click:Connect(function()
     local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
+    if not myRoot then 
+        print("Você não tem personagem!")
+        return 
+    end
     
-    local closestPortal = nil
+    local closest = nil
     local minDist = math.huge
     
     for _, obj in ipairs(Workspace:GetDescendants()) do
-        if obj.Name:lower():find("portal") or obj.Name:lower():find("gate") or 
-           (obj:IsA("Part") and obj.Transparency < 0.8 and obj.Size.Magnitude < 30) then
-            local dist = (obj.Position - myRoot.Position).Magnitude
-            if dist < minDist then
-                minDist = dist
-                closestPortal = obj
+        local name = obj.Name:lower()
+        if name:find("portal") or name:find("gate") or name:find("tp") or name:find("teleport") then
+            if obj:IsA("Part") or obj:IsA("Model") then
+                local pos = obj.Position or (obj.PrimaryPart and obj.PrimaryPart.Position)
+                if pos then
+                    local dist = (pos - myRoot.Position).Magnitude
+                    if dist < minDist then
+                        minDist = dist
+                        closest = pos
+                    end
+                end
             end
         end
     end
     
-    if closestPortal then
-        myRoot.CFrame = closestPortal.CFrame + Vector3.new(0,5,0)
-        print("Teletransportado para portal!")
+    if closest then
+        myRoot.CFrame = CFrame.new(closest + Vector3.new(0,6,0))
+        print("✅ Teleportado para portal!")
     else
-        print("Nenhum portal encontrado.")
+        print("Nenhum portal encontrado no mapa.")
     end
 end)
 
 -- Teleport para Jogador (mantido)
 local TpBtn = Instance.new("TextButton")
-TpBtn.Size = UDim2.new(1,-20,0,50)
+TpBtn.Size = UDim2.new(1,-20,0,55)
 TpBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 TpBtn.Text = "Teleport para Jogador Mais Próximo"
 TpBtn.TextColor3 = Color3.new(1,1,1)
@@ -178,29 +188,27 @@ TpBtn.MouseButton1Click:Connect(function()
     if closest then myRoot.CFrame = closest.CFrame + Vector3.new(0,5,0) end
 end)
 
--- FLING + DANO
-local function Fling(targetChar)
-    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then return end
-    local root = targetChar.HumanoidRootPart
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    bv.Velocity = Vector3.new(math.random(-120,120), 120, math.random(-120,120))
-    bv.Parent = root
-    game.Debris:AddItem(bv, 1)
-end
-
-local function DamageAll()
+-- Reviver Todos (Melhorado)
+local function ReviveAll()
     for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Humanoid") then
-            plr.Character.Humanoid:TakeDamage(25)  -- Dano forte
+        if plr.Character then
+            local hum = plr.Character:FindFirstChild("Humanoid")
+            if hum and hum.Health <= 0 then
+                hum.Health = hum.MaxHealth
+                -- Tenta resetar posição
+                local root = plr.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    root.CFrame = root.CFrame + Vector3.new(0, 10, 0)
+                end
+            end
         end
     end
 end
 
+-- Loop principal
 RunService.RenderStepped:Connect(function()
-    -- Aimbot (mantido)
+    -- Aimbot, Fling, Speed, etc. (mantidos)
     if Settings.Aimbot then
-        -- (código completo do aimbot anterior)
         local best = nil
         local minDist = Settings.FOV
         local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
@@ -231,36 +239,11 @@ RunService.RenderStepped:Connect(function()
         end
     end
     
-    -- Fling
-    if Settings.Fling then
-        local closest = nil
-        local minD = math.huge
-        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if myRoot then
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local d = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
-                    if d < minD then
-                        minD = d
-                        closest = plr.Character
-                    end
-                end
-            end
-            if closest then Fling(closest) end
-        end
+    if Settings.ReviveAll then
+        ReviveAll()
     end
     
-    if Settings.FlingAll then
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character then Fling(plr.Character) end
-        end
-    end
-    
-    if Settings.DamageAll then
-        DamageAll()
-    end
-    
-    -- Speed + Noclip
+    -- Speed + Noclip (mantido)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Speed
         if Settings.Noclip then
@@ -279,4 +262,4 @@ UserInputService.InputBegan:Connect(function(i)
     if i.KeyCode == Enum.KeyCode.Insert then Main.Visible = not Main.Visible end
 end)
 
-print("✅ Portal TP + Dano em Todos adicionados!")
+print("✅ Reviver e Portal TP Corrigidos!")

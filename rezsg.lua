@@ -1,130 +1,299 @@
--- 🔥 MENU CHEAT ROBLOX - Carregado via GitHub Style
+-- === MENU UI CHAMATIVO + AIMBOT + ESP + NOCLIP PARA DELTA ===
+-- Cole todo o código no Delta Executor e execute
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
-local aimbotEnabled = true
-local pullEnabled = true
-local noclipEnabled = false
+-- Configurações
+local Settings = {
+    Aimbot = false,
+    FOV = 120,
+    AimPart = "Head",
+    Smoothing = 0.25,
+    TeamCheck = true,
+    ESP = true,
+    Noclip = false,
+    Speed = 50,
+    ShowFOV = true
+}
 
--- === MENU GUI ===
+-- GUI Principal (Chamativa Neon)
 local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NeonAimbotHub"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = game.CoreGui
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 350)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -175)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Frame.BorderSizePixel = 0
-Frame.Active = true
-Frame.Draggable = true
-Frame.Parent = ScreenGui
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 320, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1,0,0,50)
-Title.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-Title.Text = "🔥 CHEAT MENU"
-Title.TextColor3 = Color3.new(1,1,1)
-Title.TextScaled = true
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundTransparency = 1
+Title.Text = "🔥 NEON AIM HUB 🔥"
+Title.TextColor3 = Color3.fromRGB(0, 255, 200)
 Title.Font = Enum.Font.GothamBold
-Title.Parent = Frame
+Title.TextSize = 22
+Title.Parent = MainFrame
 
-local function AddButton(text, posY, func)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9,0,0,50)
-    btn.Position = UDim2.new(0.05,0,0,posY)
-    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    btn.Text = text
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.TextScaled = true
-    btn.Font = Enum.Font.GothamSemibold
-    btn.Parent = Frame
-    btn.MouseButton1Click:Connect(func)
+-- Função para criar toggles e sliders bonitos
+local function CreateToggle(parent, text, default, callback)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, -20, 0, 40)
+    ToggleFrame.BackgroundTransparency = 1
+    ToggleFrame.Parent = parent
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.new(1,1,1)
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 16
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = ToggleFrame
+    
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 60, 0, 30)
+    Button.Position = UDim2.new(0.8, 0, 0.5, -15)
+    Button.BackgroundColor3 = default and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
+    Button.Text = default and "ON" or "OFF"
+    Button.TextColor3 = Color3.new(1,1,1)
+    Button.Font = Enum.Font.GothamBold
+    Button.Parent = ToggleFrame
+    
+    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
+    
+    Button.MouseButton1Click:Connect(function()
+        default = not default
+        Button.BackgroundColor3 = default and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
+        Button.Text = default and "ON" or "OFF"
+        callback(default)
+    end)
+    return ToggleFrame
 end
 
-AddButton("🔫 Aimbot: ON", 60, function() 
-    aimbotEnabled = not aimbotEnabled 
-    print("Aimbot:", aimbotEnabled and "ON" or "OFF") 
-end)
+local function CreateSlider(parent, text, min, max, default, callback)
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Size = UDim2.new(1, -20, 0, 50)
+    SliderFrame.BackgroundTransparency = 1
+    SliderFrame.Parent = parent
+    
+    local Label = Instance.new("TextLabel")
+    Label.Text = text .. ": " .. default
+    Label.Size = UDim2.new(1, 0, 0, 20)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Color3.new(1,1,1)
+    Label.Font = Enum.Font.Gotham
+    Label.Parent = SliderFrame
+    
+    local Bar = Instance.new("Frame")
+    Bar.Size = UDim2.new(1, 0, 0, 8)
+    Bar.Position = UDim2.new(0, 0, 0, 30)
+    Bar.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    Bar.Parent = SliderFrame
+    Instance.new("UICorner", Bar)
+    
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(0, 255, 200)
+    Fill.Parent = Bar
+    Instance.new("UICorner", Fill)
+    
+    local dragging = false
+    Bar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+    end)
+    
+    RunService.RenderStepped:Connect(function()
+        if dragging then
+            local mouseX = UserInputService:GetMouseLocation().X
+            local barPos = Bar.AbsolutePosition.X
+            local barSize = Bar.AbsoluteSize.X
+            local percent = math.clamp((mouseX - barPos) / barSize, 0, 1)
+            local value = math.floor(min + (max - min) * percent)
+            Fill.Size = UDim2.new(percent, 0, 1, 0)
+            Label.Text = text .. ": " .. value
+            callback(value)
+        end
+    end)
+end
 
-AddButton("🧲 Puxar Itens: ON", 120, function() 
-    pullEnabled = not pullEnabled 
-    print("Pull:", pullEnabled and "ON" or "OFF") 
-end)
+-- Adiciona elementos no menu
+local Scrolling = Instance.new("ScrollingFrame")
+Scrolling.Size = UDim2.new(1, -20, 1, -70)
+Scrolling.Position = UDim2.new(0, 10, 0, 60)
+Scrolling.BackgroundTransparency = 1
+Scrolling.ScrollBarThickness = 6
+Scrolling.Parent = MainFrame
 
-AddButton("👻 Noclip: OFF", 180, function() 
-    noclipEnabled = not noclipEnabled 
-    print("Noclip:", noclipEnabled and "ON" or "OFF") 
-end)
+CreateToggle(Scrolling, "Aimbot", Settings.Aimbot, function(v) Settings.Aimbot = v end)
+CreateSlider(Scrolling, "FOV", 30, 300, Settings.FOV, function(v) Settings.FOV = v end)
+CreateToggle(Scrolling, "ESP + HP", Settings.ESP, function(v) Settings.ESP = v end)
+CreateToggle(Scrolling, "Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
+CreateSlider(Scrolling, "Speed Fast", 16, 100, Settings.Speed, function(v) Settings.Speed = v end)
+CreateToggle(Scrolling, "Mostrar Círculo FOV", Settings.ShowFOV, function(v) Settings.ShowFOV = v end)
 
-AddButton("📍 Teleportar Mais Próximo", 240, function()
-    local closest = nil
-    local dist = math.huge
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local d = (root.Position - p.Character.HumanoidRootPart.Position).Magnitude
-            if d < dist then dist = d closest = p end
+-- Círculo FOV
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2
+FOVCircle.NumSides = 100
+FOVCircle.Radius = Settings.FOV
+FOVCircle.Color = Color3.fromRGB(0, 255, 200)
+FOVCircle.Transparency = 0.7
+FOVCircle.Visible = false
+
+-- ESP Drawings
+local ESPObjects = {}
+
+local function CreateESP(player)
+    if player == LocalPlayer then return end
+    local Box = Drawing.new("Square")
+    Box.Thickness = 2
+    Box.Filled = false
+    Box.Color = Color3.fromRGB(0, 255, 200)
+    Box.Transparency = 1
+    
+    local Name = Drawing.new("Text")
+    Name.Size = 16
+    Name.Color = Color3.new(1,1,1)
+    Name.Outline = true
+    
+    local HealthBar = Drawing.new("Square")
+    HealthBar.Thickness = 1
+    HealthBar.Filled = true
+    HealthBar.Color = Color3.fromRGB(0, 255, 0)
+    
+    ESPObjects[player] = {Box = Box, Name = Name, HealthBar = HealthBar}
+end
+
+Players.PlayerAdded:Connect(CreateESP)
+for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
+
+-- Aimbot Logic
+local function GetClosestTarget()
+    local closest, dist = nil, Settings.FOV
+    local mousePos = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild(Settings.AimPart) then
+            if Settings.TeamCheck and player.Team == LocalPlayer.Team then continue end
+            
+            local part = player.Character[Settings.AimPart]
+            local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+            if not onScreen then continue end
+            
+            local magnitude = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+            if magnitude < dist then
+                dist = magnitude
+                closest = part
+            end
         end
     end
-    if closest then
-        root.CFrame = closest.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
-    end
-end)
+    return closest
+end
 
--- Aimbot
+-- Main Loop
 RunService.RenderStepped:Connect(function()
-    if not aimbotEnabled then return end
-    local target = nil
-    local minDist = 9999
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
+    -- Atualiza FOV Circle
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    FOVCircle.Radius = Settings.FOV
+    FOVCircle.Visible = Settings.ShowFOV and Settings.Aimbot
     
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-            local d = (myRoot.Position - plr.Character.Head.Position).Magnitude
-            if d < minDist and d < 150 then
-                minDist = d
-                target = plr
-            end
+    -- Aimbot
+    if Settings.Aimbot then
+        local target = GetClosestTarget()
+        if target then
+            local targetPos = Camera:WorldToViewportPoint(target.Position)
+            local mouse = UserInputService:GetMouseLocation()
+            local smooth = (Vector2.new(targetPos.X, targetPos.Y) - mouse) * Settings.Smoothing
+            mousemoverel(smooth.X, smooth.Y)
         end
     end
     
-    if target then
-        Camera.CFrame = Camera.CFrame:Lerp(CFrame.lookAt(Camera.CFrame.Position, target.Character.Head.Position), 0.12)
-    end
-end)
-
--- Puxar Itens
-RunService.Heartbeat:Connect(function()
-    if not pullEnabled then return end
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    for _, v in ipairs(Workspace:GetDescendants()) do
-        if v:IsA("BasePart") and (root.Position - v.Position).Magnitude < 70 then
-            local n = v.Name:lower()
-            if n:find("coin") or n:find("drop") or n:find("item") then
-                v.CFrame = root.CFrame + Vector3.new(0,3,0)
+    -- ESP
+    if Settings.ESP then
+        for player, drawings in pairs(ESPObjects) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Head") and player.Character.Humanoid.Health > 0 then
+                local root = player.Character.HumanoidRootPart
+                local head = player.Character.Head
+                local humanoid = player.Character.Humanoid
+                
+                local rootPos, onScreen = Camera:WorldToViewportPoint(root.Position)
+                if onScreen then
+                    local headPos = Camera:WorldToViewportPoint(head.Position)
+                    local legPos = Camera:WorldToViewportPoint(root.Position - Vector3.new(0,3,0))
+                    
+                    local height = (headPos.Y - legPos.Y)
+                    drawings.Box.Size = Vector2.new(height/1.5, height)
+                    drawings.Box.Position = Vector2.new(rootPos.X - drawings.Box.Size.X/2, rootPos.Y - drawings.Box.Size.Y/2)
+                    drawings.Box.Visible = true
+                    
+                    drawings.Name.Text = player.Name .. " [" .. math.floor(humanoid.Health) .. " HP]"
+                    drawings.Name.Position = Vector2.new(rootPos.X - drawings.Name.TextBounds.X/2, headPos.Y - 25)
+                    drawings.Name.Visible = true
+                    
+                    -- Health Bar
+                    local healthPercent = humanoid.Health / humanoid.MaxHealth
+                    drawings.HealthBar.Size = Vector2.new(4, height * healthPercent)
+                    drawings.HealthBar.Position = Vector2.new(rootPos.X - drawings.Box.Size.X/2 - 8, rootPos.Y - drawings.Box.Size.Y/2 + (height * (1 - healthPercent)))
+                    drawings.HealthBar.Visible = true
+                else
+                    drawings.Box.Visible = false
+                    drawings.Name.Visible = false
+                    drawings.HealthBar.Visible = false
+                end
+            else
+                drawings.Box.Visible = false
+                drawings.Name.Visible = false
+                drawings.HealthBar.Visible = false
             end
         end
+    else
+        for _, drawings in pairs(ESPObjects) do
+            drawings.Box.Visible = false
+            drawings.Name.Visible = false
+            drawings.HealthBar.Visible = false
+        end
     end
-end)
-
--- Noclip
-RunService.Stepped:Connect(function()
-    if LocalPlayer.Character then
+    
+    -- Noclip
+    if Settings.Noclip and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then
-                part.CanCollide = not noclipEnabled
+                part.CanCollide = false
             end
         end
     end
+    
+    -- Speed Fast
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Speed
+    end
 end)
 
-print("✅ Menu carregado! Pressione INSERT para abrir/fechar")
+-- Toggle Menu com Insert
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+print("✅ Menu Neon + Aimbot + ESP carregado! Pressione INSERT para abrir.")

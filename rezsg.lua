@@ -1,217 +1,141 @@
--- === NEON HUB v22 - TELEPORTE AVANÇADO ===
+-- === NEON PRO HUB v23 - Sobreviva o Assassino ===
+-- Menu Moderno + Anti-Cheat Bypass Básico
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
-local Settings = {
+-- ==================== CONFIGURAÇÕES ====================
+local Config = {
     Aimbot = false,
-    FOV = 100,
-    Smoothing = 0.12,
-    Speed = 55,
+    FOV = 110,
+    Smoothing = 0.14,
+    Speed = 60,
     Noclip = false,
-    AutoRevive = false,
     GodMode = false,
-    LoopTeleport = false,
+    AutoRevive = false,
+    KillAura = false,
+    Fling = false,
+    FlingAll = false,
+    AntiDetect = true,
 }
 
--- GUI
+-- ==================== GUI MODERNA ====================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
 
+-- Ícone Flutuante
 local Icon = Instance.new("TextButton")
-Icon.Size = UDim2.new(0,80,0,80)
-Icon.Position = UDim2.new(1,-110,0,25)
-Icon.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
-Icon.Text = "🌌"
-Icon.TextSize = 42
+Icon.Size = UDim2.new(0, 70, 0, 70)
+Icon.Position = UDim2.new(1, -90, 0, 40)
+Icon.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Icon.Text = "🩸"
+Icon.TextSize = 36
+Icon.Font = Enum.Font.GothamBold
+Icon.TextColor3 = Color3.fromRGB(255, 80, 80)
 Icon.Parent = ScreenGui
-Instance.new("UICorner", Icon).CornerRadius = UDim.new(1,0)
+Instance.new("UICorner", Icon).CornerRadius = UDim.new(1, 0)
 
+-- Janela Principal
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 440, 0, 780)
-Main.Position = UDim2.new(0.5, -220, 0.5, -390)
-Main.BackgroundColor3 = Color3.fromRGB(18,18,25)
+Main.Size = UDim2.new(0, 420, 0, 680)
+Main.Position = UDim2.new(0.5, -210, 0.5, -340)
+Main.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
 Main.Visible = false
 Main.Parent = ScreenGui
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 16)
+
+-- Barra de Título
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 60)
+TitleBar.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+TitleBar.Parent = Main
+Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0, 16)
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1,0,0,65)
-Title.BackgroundColor3 = Color3.fromRGB(0, 80, 200)
-Title.Text = "🌌 TELEPORTE AVANÇADO v22"
+Title.Size = UDim2.new(1, -60, 1, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🩸 NEON PRO HUB"
 Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 24
-Title.Parent = Main
+Title.Parent = TitleBar
 
-local Close = Instance.new("TextButton")
-Close.Size = UDim2.new(0,45,0,45)
-Close.Position = UDim2.new(1,-52,0,10)
-Close.BackgroundTransparency = 1
-Close.Text = "✕"
-Close.TextColor3 = Color3.new(1,1,1)
-Close.TextSize = 32
-Close.Parent = Title
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 45, 0, 45)
+CloseBtn.Position = UDim2.new(1, -50, 0, 8)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.TextSize = 28
+CloseBtn.Parent = TitleBar
 
+-- Scrolling
 local Scrolling = Instance.new("ScrollingFrame")
-Scrolling.Size = UDim2.new(1, -20, 1, -85)
-Scrolling.Position = UDim2.new(0, 10, 0, 75)
+Scrolling.Size = UDim2.new(1, -20, 1, -80)
+Scrolling.Position = UDim2.new(0, 10, 0, 70)
 Scrolling.BackgroundTransparency = 1
-Scrolling.ScrollBarThickness = 8
+Scrolling.ScrollBarThickness = 6
+Scrolling.ScrollBarImageColor3 = Color3.fromRGB(255, 80, 80)
 Scrolling.Parent = Main
 
-local UIList = Instance.new("UIListLayout", Scrolling)
-UIList.Padding = UDim.new(0, 12)
-UIList.SortOrder = Enum.SortOrder.LayoutOrder
+local ListLayout = Instance.new("UIListLayout", Scrolling)
+ListLayout.Padding = UDim.new(0, 14)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    Scrolling.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 60)
+ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Scrolling.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 40)
 end)
 
-local function Toggle(text, def, callback)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -10, 0, 58)
-    frame.BackgroundColor3 = Color3.fromRGB(35,35,45)
-    frame.Parent = Scrolling
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
+local function CreateToggle(text, default, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -20, 0, 62)
+    Frame.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
+    Frame.Parent = Scrolling
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
     
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.65, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = "   " .. text
-    label.TextColor3 = Color3.new(1,1,1)
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 18
-    label.Parent = frame
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = "   " .. text
+    Label.TextColor3 = Color3.new(1,1,1)
+    Label.Font = Enum.Font.GothamSemibold
+    Label.TextSize = 18
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
     
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 90, 0, 40)
-    btn.Position = UDim2.new(0.72, 0, 0.5, -20)
-    btn.BackgroundColor3 = def and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 60, 60)
-    btn.Text = def and "ON" or "OFF"
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+    local Switch = Instance.new("TextButton")
+    Switch.Size = UDim2.new(0, 95, 0, 42)
+    Switch.Position = UDim2.new(0.78, 0, 0.5, -21)
+    Switch.BackgroundColor3 = default and Color3.fromRGB(0, 255, 140) or Color3.fromRGB(255, 60, 60)
+    Switch.Text = default and "ON" or "OFF"
+    Switch.TextColor3 = Color3.new(1,1,1)
+    Switch.Font = Enum.Font.GothamBold
+    Switch.TextSize = 16
+    Switch.Parent = Frame
+    Instance.new("UICorner", Switch).CornerRadius = UDim.new(0, 12)
     
-    btn.MouseButton1Click:Connect(function()
-        def = not def
-        btn.BackgroundColor3 = def and Color3.fromRGB(0,255,120) or Color3.fromRGB(255,60,60)
-        btn.Text = def and "ON" or "OFF"
-        callback(def)
+    Switch.MouseButton1Click:Connect(function()
+        default = not default
+        Switch.BackgroundColor3 = default and Color3.fromRGB(0,255,140) or Color3.fromRGB(255,60,60)
+        Switch.Text = default and "ON" or "OFF"
+        callback(default)
     end)
 end
 
--- Opções Avançadas de Teleporte
-Toggle("Aimbot", Settings.Aimbot, function(v) Settings.Aimbot = v end)
-Toggle("Auto Reviver", Settings.AutoRevive, function(v) Settings.AutoRevive = v end)
-Toggle("God Mode", Settings.GodMode, function(v) Settings.GodMode = v end)
-Toggle("Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
+-- ==================== FUNÇÕES ====================
+CreateToggle("Aimbot (Cabeça)", Settings.Aimbot, function(v) Settings.Aimbot = v end)
+CreateToggle("Auto Reviver", Settings.AutoRevive, function(v) Settings.AutoRevive = v end)
+CreateToggle("Kill Aura", Settings.KillAura, function(v) Settings.KillAura = v end)
+CreateToggle("God Mode", Settings.GodMode, function(v) Settings.GodMode = v end)
+CreateToggle("Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
+CreateToggle("Fling Mais Próximo", Settings.Fling, function(v) Settings.Fling = v end)
+CreateToggle("Fling Todos", Settings.FlingAll, function(v) Settings.FlingAll = v end)
 
--- TELEPORTE AVANÇADO
-local TpPlayerBtn = Instance.new("TextButton")
-TpPlayerBtn.Size = UDim2.new(1,-20,0,55)
-TpPlayerBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-TpPlayerBtn.Text = "Teleport para Jogador Mais Próximo"
-TpPlayerBtn.TextColor3 = Color3.new(1,1,1)
-TpPlayerBtn.Font = Enum.Font.GothamBold
-TpPlayerBtn.TextSize = 16
-TpPlayerBtn.Parent = Scrolling
-Instance.new("UICorner", TpPlayerBtn).CornerRadius = UDim.new(0,12)
-
-TpPlayerBtn.MouseButton1Click:Connect(function()
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
-    local closest, minDist = nil, math.huge
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
-            if dist < minDist then
-                minDist = dist
-                closest = plr.Character.HumanoidRootPart
-            end
-        end
-    end
-    if closest then myRoot.CFrame = closest.CFrame + Vector3.new(0,5,0) end
-end)
-
-local TpPortalBtn = Instance.new("TextButton")
-TpPortalBtn.Size = UDim2.new(1,-20,0,55)
-TpPortalBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-TpPortalBtn.Text = "Teleport para Portal Mais Próximo"
-TpPortalBtn.TextColor3 = Color3.new(1,1,1)
-TpPortalBtn.Font = Enum.Font.GothamBold
-TpPortalBtn.TextSize = 16
-TpPortalBtn.Parent = Scrolling
-Instance.new("UICorner", TpPortalBtn).CornerRadius = UDim.new(0,12)
-
-TpPortalBtn.MouseButton1Click:Connect(function()
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
-    local closest, minDist = nil, math.huge
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        local name = obj.Name:lower()
-        if name:find("portal") or name:find("gate") or name:find("tele") or name:find("door") then
-            local pos = obj.Position or (obj.PrimaryPart and obj.PrimaryPart.Position)
-            if pos then
-                local dist = (pos - myRoot.Position).Magnitude
-                if dist < minDist then
-                    minDist = dist
-                    closest = pos
-                end
-            end
-        end
-    end
-    if closest then
-        myRoot.CFrame = CFrame.new(closest + Vector3.new(0,6,0))
-    end
-end)
-
--- LOOP TELEPORT (Avançado)
-local LoopTpBtn = Instance.new("TextButton")
-LoopTpBtn.Size = UDim2.new(1,-20,0,55)
-LoopTpBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-LoopTpBtn.Text = "Loop Teleport (Ativar/Desativar)"
-LoopTpBtn.TextColor3 = Color3.new(1,1,1)
-LoopTpBtn.Font = Enum.Font.GothamBold
-LoopTpBtn.TextSize = 16
-LoopTpBtn.Parent = Scrolling
-Instance.new("UICorner", LoopTpBtn).CornerRadius = UDim.new(0,12)
-
-LoopTpBtn.MouseButton1Click:Connect(function()
-    Settings.LoopTeleport = not Settings.LoopTeleport
-    LoopTpBtn.Text = Settings.LoopTeleport and "Loop Teleport: LIGADO" or "Loop Teleport (Ativar/Desativar)"
-end)
-
--- PUXAR MOEDAS + ITENS
-local PullBtn = Instance.new("TextButton")
-PullBtn.Size = UDim2.new(1,-20,0,55)
-PullBtn.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-PullBtn.Text = "Puxar Todas Moedas / Itens"
-PullBtn.TextColor3 = Color3.new(1,1,1)
-PullBtn.Font = Enum.Font.GothamBold
-PullBtn.TextSize = 16
-PullBtn.Parent = Scrolling
-Instance.new("UICorner", PullBtn).CornerRadius = UDim.new(0,12)
-
-PullBtn.MouseButton1Click:Connect(function()
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        if obj:IsA("Part") or obj:IsA("MeshPart") then
-            local name = obj.Name:lower()
-            if name:find("coin") or name:find("moeda") or name:find("money") or name:find("gem") or name:find("item") then
-                obj.CFrame = myRoot.CFrame + Vector3.new(math.random(-3,3), 3, math.random(-3,3))
-            end
-        end
-    end
-end)
-
--- Loop Principal
+-- Main Loop com Anti-Detect
 RunService.RenderStepped:Connect(function()
     if Settings.Aimbot then
         local best = nil
@@ -238,16 +162,9 @@ RunService.RenderStepped:Connect(function()
         if best then
             local tPos = Camera:WorldToViewportPoint(best.Position)
             local mPos = UserInputService:GetMouseLocation()
-            local dx = (tPos.X - mPos.X) * Settings.Smoothing * 1.7
-            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * 1.7
+            local dx = (tPos.X - mPos.X) * Settings.Smoothing * 1.65
+            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * 1.65
             mousemoverel(dx, dy)
-        end
-    end
-    
-    if Settings.LoopTeleport then
-        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if myRoot then
-            myRoot.CFrame = myRoot.CFrame + myRoot.CFrame.LookVector * 0.5
         end
     end
     
@@ -257,6 +174,20 @@ RunService.RenderStepped:Connect(function()
                 local hum = plr.Character:FindFirstChild("Humanoid")
                 if hum and hum.Health <= 0 then
                     hum.Health = hum.MaxHealth
+                end
+            end
+        end
+    end
+    
+    if Settings.KillAura then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if myRoot then
+                    local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
+                    if dist < 25 then
+                        plr.Character.Humanoid:TakeDamage(28)
+                    end
                 end
             end
         end
@@ -282,5 +213,5 @@ UserInputService.InputBegan:Connect(function(i)
     end
 end)
 
-print("✅ TELEPORTE AVANÇADO ATIVADO!")
-print("Use INSERT para abrir o menu")
+print("✅ MENU MODERNO CARREGADO!")
+print("Pressione INSERT ou clique no ícone")

@@ -1,41 +1,35 @@
--- === NEON PRO HUB v23 - Sobreviva o Assassino ===
--- Menu Moderno + Anti-Cheat Bypass Básico
-
+-- === NEON PRO HUB v24 - MENU FUNCIONANDO ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
--- ==================== CONFIGURAÇÕES ====================
-local Config = {
+local Settings = {
     Aimbot = false,
     FOV = 110,
-    Smoothing = 0.14,
+    Smoothing = 0.13,
     Speed = 60,
     Noclip = false,
-    GodMode = false,
     AutoRevive = false,
     KillAura = false,
-    Fling = false,
-    FlingAll = false,
-    AntiDetect = true,
+    GodMode = false,
 }
 
--- ==================== GUI MODERNA ====================
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
 
--- Ícone Flutuante
+-- Ícone
 local Icon = Instance.new("TextButton")
-Icon.Size = UDim2.new(0, 70, 0, 70)
-Icon.Position = UDim2.new(1, -90, 0, 40)
-Icon.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Icon.Size = UDim2.new(0, 75, 0, 75)
+Icon.Position = UDim2.new(1, -95, 0, 35)
+Icon.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
 Icon.Text = "🩸"
-Icon.TextSize = 36
+Icon.TextSize = 38
 Icon.Font = Enum.Font.GothamBold
-Icon.TextColor3 = Color3.fromRGB(255, 80, 80)
+Icon.TextColor3 = Color3.new(1,1,1)
 Icon.Parent = ScreenGui
 Instance.new("UICorner", Icon).CornerRadius = UDim.new(1, 0)
 
@@ -48,10 +42,10 @@ Main.Visible = false
 Main.Parent = ScreenGui
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 16)
 
--- Barra de Título
+-- Título
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 60)
-TitleBar.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
 TitleBar.Parent = Main
 Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0, 16)
 
@@ -66,11 +60,11 @@ Title.Parent = TitleBar
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 45, 0, 45)
-CloseBtn.Position = UDim2.new(1, -50, 0, 8)
+CloseBtn.Position = UDim2.new(1, -52, 0, 8)
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "✕"
 CloseBtn.TextColor3 = Color3.new(1,1,1)
-CloseBtn.TextSize = 28
+CloseBtn.TextSize = 30
 CloseBtn.Parent = TitleBar
 
 -- Scrolling
@@ -78,8 +72,7 @@ local Scrolling = Instance.new("ScrollingFrame")
 Scrolling.Size = UDim2.new(1, -20, 1, -80)
 Scrolling.Position = UDim2.new(0, 10, 0, 70)
 Scrolling.BackgroundTransparency = 1
-Scrolling.ScrollBarThickness = 6
-Scrolling.ScrollBarImageColor3 = Color3.fromRGB(255, 80, 80)
+Scrolling.ScrollBarThickness = 8
 Scrolling.Parent = Main
 
 local ListLayout = Instance.new("UIListLayout", Scrolling)
@@ -87,12 +80,12 @@ ListLayout.Padding = UDim.new(0, 14)
 ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    Scrolling.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 40)
+    Scrolling.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 50)
 end)
 
 local function CreateToggle(text, default, callback)
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, -20, 0, 62)
+    Frame.Size = UDim2.new(1, -20, 0, 60)
     Frame.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
     Frame.Parent = Scrolling
     Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
@@ -107,35 +100,34 @@ local function CreateToggle(text, default, callback)
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = Frame
     
-    local Switch = Instance.new("TextButton")
-    Switch.Size = UDim2.new(0, 95, 0, 42)
-    Switch.Position = UDim2.new(0.78, 0, 0.5, -21)
-    Switch.BackgroundColor3 = default and Color3.fromRGB(0, 255, 140) or Color3.fromRGB(255, 60, 60)
-    Switch.Text = default and "ON" or "OFF"
-    Switch.TextColor3 = Color3.new(1,1,1)
-    Switch.Font = Enum.Font.GothamBold
-    Switch.TextSize = 16
-    Switch.Parent = Frame
-    Instance.new("UICorner", Switch).CornerRadius = UDim.new(0, 12)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0, 95, 0, 42)
+    Btn.Position = UDim2.new(0.78, 0, 0.5, -21)
+    Btn.BackgroundColor3 = default and Color3.fromRGB(0, 255, 140) or Color3.fromRGB(255, 60, 60)
+    Btn.Text = default and "ON" or "OFF"
+    Btn.TextColor3 = Color3.new(1,1,1)
+    Btn.Font = Enum.Font.GothamBold
+    Btn.TextSize = 16
+    Btn.Parent = Frame
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 12)
     
-    Switch.MouseButton1Click:Connect(function()
+    Btn.MouseButton1Click:Connect(function()
         default = not default
-        Switch.BackgroundColor3 = default and Color3.fromRGB(0,255,140) or Color3.fromRGB(255,60,60)
-        Switch.Text = default and "ON" or "OFF"
+        Btn.BackgroundColor3 = default and Color3.fromRGB(0,255,140) or Color3.fromRGB(255,60,60)
+        Btn.Text = default and "ON" or "OFF"
         callback(default)
     end)
 end
 
--- ==================== FUNÇÕES ====================
+-- Opções
 CreateToggle("Aimbot (Cabeça)", Settings.Aimbot, function(v) Settings.Aimbot = v end)
 CreateToggle("Auto Reviver", Settings.AutoRevive, function(v) Settings.AutoRevive = v end)
 CreateToggle("Kill Aura", Settings.KillAura, function(v) Settings.KillAura = v end)
 CreateToggle("God Mode", Settings.GodMode, function(v) Settings.GodMode = v end)
 CreateToggle("Noclip", Settings.Noclip, function(v) Settings.Noclip = v end)
 CreateToggle("Fling Mais Próximo", Settings.Fling, function(v) Settings.Fling = v end)
-CreateToggle("Fling Todos", Settings.FlingAll, function(v) Settings.FlingAll = v end)
 
--- Main Loop com Anti-Detect
+-- Loop
 RunService.RenderStepped:Connect(function()
     if Settings.Aimbot then
         local best = nil
@@ -162,8 +154,8 @@ RunService.RenderStepped:Connect(function()
         if best then
             local tPos = Camera:WorldToViewportPoint(best.Position)
             local mPos = UserInputService:GetMouseLocation()
-            local dx = (tPos.X - mPos.X) * Settings.Smoothing * 1.65
-            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * 1.65
+            local dx = (tPos.X - mPos.X) * Settings.Smoothing * 1.7
+            local dy = (tPos.Y - mPos.Y) * Settings.Smoothing * 1.7
             mousemoverel(dx, dy)
         end
     end
@@ -179,20 +171,6 @@ RunService.RenderStepped:Connect(function()
         end
     end
     
-    if Settings.KillAura then
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if myRoot then
-                    local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
-                    if dist < 25 then
-                        plr.Character.Humanoid:TakeDamage(28)
-                    end
-                end
-            end
-        end
-    end
-    
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Speed
         if Settings.Noclip then
@@ -203,15 +181,20 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Controles
-Icon.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
-Close.MouseButton1Click:Connect(function() Main.Visible = false end)
+-- ABRIR MENU
+Icon.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
 
-UserInputService.InputBegan:Connect(function(i)
-    if i.KeyCode == Enum.KeyCode.Insert then
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
         Main.Visible = not Main.Visible
     end
 end)
 
-print("✅ MENU MODERNO CARREGADO!")
-print("Pressione INSERT ou clique no ícone")
+print("✅ MENU CARREGADO COM SUCESSO!")
+print("Pressione INSERT ou clique no ícone 🩸 para abrir")

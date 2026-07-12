@@ -1,4 +1,4 @@
--- 🔥 CHEAT MENU COM SWITCHES + SLIDER FOV
+-- 🔥 CHEAT MENU COMPLETO - Com Bala Mágica (Magic Bullet)
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -8,26 +8,25 @@ local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
 
 local aimbotEnabled = true
+local magicBulletEnabled = true
 local pullEnabled = true
 local noclipEnabled = false
-local aimFOV = 150  -- Valor inicial
+local aimFOV = 150
 
--- GUI
+-- GUI (mesma base anterior)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 320, 0, 420)
-Main.Position = UDim2.new(0.5, -160, 0.5, -210)
+Main.Size = UDim2.new(0, 340, 0, 480)
+Main.Position = UDim2.new(0.5, -170, 0.5, -240)
 Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Main.BorderSizePixel = 0
-Main.Active = true
 Main.Draggable = true
 Main.Parent = ScreenGui
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 50)
+Title.Size = UDim2.new(1,0,0,50)
 Title.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 Title.Text = "🔥 CHEAT MENU"
 Title.TextColor3 = Color3.new(1,1,1)
@@ -35,126 +34,122 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.Parent = Main
 
--- Função para criar Switch (ON/OFF)
-local function CreateSwitch(text, yPos, defaultState, callback)
-    local SwitchFrame = Instance.new("Frame")
-    SwitchFrame.Size = UDim2.new(0.9, 0, 0, 50)
-    SwitchFrame.Position = UDim2.new(0.05, 0, 0, yPos)
-    SwitchFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    SwitchFrame.Parent = Main
+local function CreateSwitch(text, yPos, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0.9,0,0,50)
+    frame.Position = UDim2.new(0.05,0,0,yPos)
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    frame.Parent = Main
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.6, 0, 1, 0)
-    Label.BackgroundTransparency = 1
-    Label.Text = text
-    Label.TextColor3 = Color3.new(1,1,1)
-    Label.TextScaled = true
-    Label.Font = Enum.Font.GothamSemibold
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Parent = SwitchFrame
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.65,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.new(1,1,1)
+    label.TextScaled = true
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
 
-    local Toggle = Instance.new("TextButton")
-    Toggle.Size = UDim2.new(0, 80, 0, 30)
-    Toggle.Position = UDim2.new(0.75, 0, 0.5, -15)
-    Toggle.BackgroundColor3 = defaultState and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
-    Toggle.Text = defaultState and "ON" or "OFF"
-    Toggle.TextColor3 = Color3.new(1,1,1)
-    Toggle.TextScaled = true
-    Toggle.Font = Enum.Font.GothamBold
-    Toggle.Parent = SwitchFrame
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0,90,0,35)
+    toggle.Position = UDim2.new(0.7,0,0.5,-17)
+    toggle.BackgroundColor3 = default and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
+    toggle.Text = default and "ON" or "OFF"
+    toggle.TextColor3 = Color3.new(1,1,1)
+    toggle.TextScaled = true
+    toggle.Parent = frame
 
-    local enabled = defaultState
-
-    Toggle.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            Toggle.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-            Toggle.Text = "ON"
-        else
-            Toggle.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-            Toggle.Text = "OFF"
-        end
-        callback(enabled)
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.BackgroundColor3 = state and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
+        toggle.Text = state and "ON" or "OFF"
+        callback(state)
     end)
 end
 
--- Função Slider para FOV
-local function CreateSlider(yPos)
-    local SliderFrame = Instance.new("Frame")
-    SliderFrame.Size = UDim2.new(0.9, 0, 0, 70)
-    SliderFrame.Position = UDim2.new(0.05, 0, 0, yPos)
-    SliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    SliderFrame.Parent = Main
+-- Switches
+CreateSwitch("🔫 Aimbot Visual", 60, true, function(v) aimbotEnabled = v end)
+CreateSwitch("💥 Bala Mágica (Silent Aim)", 120, true, function(v) magicBulletEnabled = v end)
+CreateSwitch("🧲 Puxar Itens", 180, true, function(v) pullEnabled = v end)
+CreateSwitch("👻 Noclip", 240, false, function(v) noclipEnabled = v end)
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, 0, 0, 25)
-    Label.BackgroundTransparency = 1
-    Label.Text = "Aim FOV: " .. aimFOV
-    Label.TextColor3 = Color3.new(1,1,1)
-    Label.TextScaled = true
-    Label.Font = Enum.Font.GothamSemibold
-    Label.Parent = SliderFrame
+-- Slider FOV
+local function CreateFOVSlider()
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0.9,0,0,70)
+    frame.Position = UDim2.new(0.05,0,0,300)
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    frame.Parent = Main
 
-    local Bar = Instance.new("Frame")
-    Bar.Size = UDim2.new(1, -20, 0, 10)
-    Bar.Position = UDim2.new(0, 10, 0.6, 0)
-    Bar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    Bar.Parent = SliderFrame
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,0,0,25)
+    label.Text = "Aim FOV: " .. aimFOV
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+    label.TextScaled = true
+    label.Parent = frame
 
-    local Knob = Instance.new("Frame")
-    Knob.Size = UDim2.new(0, 20, 0, 20)
-    Knob.Position = UDim2.new((aimFOV/360), 0, 0.5, -10)
-    Knob.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
-    Knob.Parent = Bar
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(1,-20,0,12)
+    bar.Position = UDim2.new(0,10,0.6,0)
+    bar.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    bar.Parent = frame
 
-    local dragging = false
-
-    Knob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mousePos = UserInputService:GetMouseLocation().X
-            local barPos = Bar.AbsolutePosition.X
-            local barSize = Bar.AbsoluteSize.X
-            
-            local percent = math.clamp((mousePos - barPos) / barSize, 0, 1)
-            aimFOV = math.floor(percent * 360)
-            
-            Knob.Position = UDim2.new(percent, 0, 0.5, -10)
-            Label.Text = "Aim FOV: " .. aimFOV
-        end
-    end)
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0,22,0,22)
+    knob.Position = UDim2.new(aimFOV/360,0,0.5,-11)
+    knob.BackgroundColor3 = Color3.fromRGB(0,170,255)
+    knob.Parent = bar
 end
 
--- Criando os Switches e Slider
-CreateSwitch("🔫 Mira Automática", 60, true, function(state) aimbotEnabled = state end)
-CreateSwitch("🧲 Puxar Itens", 120, true, function(state) pullEnabled = state end)
-CreateSwitch("👻 Noclip", 180, false, function(state) noclipEnabled = state end)
+CreateFOVSlider()
 
-CreateSlider(250)
+-- === BALA MÁGICA (Magic Bullet) ===
+local mt = getrawmetatable(game)
+local old = mt.__namecall
+setreadonly(mt, false)
 
--- Aimbot com FOV controlável
+mt.__namecall = newcclosure(function(self, ...)
+    local args = {...}
+    local method = getnamecallmethod()
+
+    if magicBulletEnabled and method == "FireServer" and self.Name:lower():find("bullet") or self.Name:lower():find("shoot") or self.Name:lower():find("gun") then
+        local closest = nil
+        local minDist = aimFOV
+
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.Head.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    closest = plr
+                end
+            end
+        end
+
+        if closest and closest.Character and closest.Character:FindFirstChild("Head") then
+            args[1] = closest.Character.Head.Position  -- Muda o alvo da bala
+        end
+    end
+
+    return old(self, unpack(args))
+end)
+
+setreadonly(mt, true)
+
+-- Aimbot Visual
 RunService.RenderStepped:Connect(function()
     if not aimbotEnabled then return end
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
+    -- (código do aimbot visual permanece igual)
     local closest = nil
     local minDist = aimFOV
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
 
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-            local dist = (character.HumanoidRootPart.Position - plr.Character.Head.Position).Magnitude
+            local dist = (root.Position - plr.Character.Head.Position).Magnitude
             if dist < minDist then
                 minDist = dist
                 closest = plr
@@ -163,32 +158,25 @@ RunService.RenderStepped:Connect(function()
     end
 
     if closest then
-        Camera.CFrame = Camera.CFrame:Lerp(
-            CFrame.lookAt(Camera.CFrame.Position, closest.Character.Head.Position), 
-            0.1
-        )
+        Camera.CFrame = Camera.CFrame:Lerp(CFrame.lookAt(Camera.CFrame.Position, closest.Character.Head.Position), 0.1)
     end
 end)
 
--- Puxar Itens
+-- Puxar e Noclip (mesmo de antes)
 RunService.Heartbeat:Connect(function()
     if not pullEnabled then return end
     local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not root then return end
     for _, obj in ipairs(Workspace:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            local d = (root.Position - obj.Position).Magnitude
-            if d < 80 then
-                local n = obj.Name:lower()
-                if n:find("coin") or n:find("drop") or n:find("item") or n:find("gem") then
-                    obj.CFrame = root.CFrame + Vector3.new(0, 3, 0)
-                end
+        if obj:IsA("BasePart") and (root.Position - obj.Position).Magnitude < 80 then
+            local n = obj.Name:lower()
+            if n:find("coin") or n:find("drop") or n:find("item") then
+                obj.CFrame = root.CFrame + Vector3.new(0,3,0)
             end
         end
     end
 end)
 
--- Noclip
 RunService.Stepped:Connect(function()
     if LocalPlayer.Character then
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
@@ -199,5 +187,5 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-print("✅ Menu com Slider carregado!")
-print("Pressione INSERT para mostrar/esconder o menu")
+print("✅ Menu com Bala Mágica carregado!")
+print("Pressione INSERT para abrir o menu")

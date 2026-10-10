@@ -18,7 +18,7 @@ export function usePresenceCheck() {
   }, [blocked]);
 
   const validate = () => {
-    window.open("https://omg10.com/4/11164149", "_blank");
+    window.open("https://uplcm.com/4/11994695", "_blank");
     localStorage.setItem(STORAGE_KEY, String(Date.now()));
     setBlocked(false);
   };

@@ -1,172 +1,249 @@
--- Delta_Auditoria_Diagnostico.lua
--- Diagnóstico passivo para ambiente autorizado.
--- Não dispara RemoteEvents, não altera atributos do personagem e não destaca itens escondidos.
+-- Delta_Auditoria_Menu_Corrigido.lua
+-- Interface mobile + diagnóstico somente leitura.
+-- Não ativa cheats, não dispara remotos e não modifica o personagem.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then
-    warn("[Auditoria] Não foi possível obter LocalPlayer. Execute dentro de uma experiência Roblox.")
+    warn("[Auditoria] LocalPlayer indisponível. Execute dentro de uma experiência Roblox.")
     return
 end
 
-local oldGui = game:GetService("CoreGui"):FindFirstChild("DeltaAuditoriaDiagnostico")
-if oldGui then oldGui:Destroy() end
+local ok, err = pcall(function()
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
+    if not playerGui then error("PlayerGui não ficou disponível.") end
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "DeltaAuditoriaDiagnostico"
-gui.ResetOnSpawn = false
-pcall(function() gui.Parent = game:GetService("CoreGui") end)
-if not gui.Parent then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+    -- Limpa a versão anterior desta interface.
+    local old = playerGui:FindFirstChild("DeltaAuditoriaMenu")
+    if old then old:Destroy() end
 
-local frame = Instance.new("Frame")
-frame.Name = "Main"
-frame.Size = UDim2.new(0, 320, 0, 390)
-frame.Position = UDim2.new(0.5, -160, 0.5, -195)
-frame.BackgroundColor3 = Color3.fromRGB(24, 27, 34)
-frame.BorderSizePixel = 0
-frame.Parent = gui
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "DeltaAuditoriaMenu"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = false
+    gui.DisplayOrder = 999
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = playerGui
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -44, 0, 38)
-title.Position = UDim2.new(0, 12, 0, 4)
-title.BackgroundTransparency = 1
-title.Text = "Auditoria • Diagnóstico passivo"
-title.TextColor3 = Color3.fromRGB(245, 245, 245)
-title.TextSize = 16
-title.Font = Enum.Font.GothamBold
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = frame
-
-local close = Instance.new("TextButton")
-close.Size = UDim2.new(0, 30, 0, 30)
-close.Position = UDim2.new(1, -36, 0, 7)
-close.BackgroundColor3 = Color3.fromRGB(160, 55, 55)
-close.Text = "X"
-close.TextColor3 = Color3.new(1,1,1)
-close.Font = Enum.Font.GothamBold
-close.TextSize = 14
-close.Parent = frame
-Instance.new("UICorner", close).CornerRadius = UDim.new(0, 7)
-close.MouseButton1Click:Connect(function() gui:Destroy() end)
-
-local scan = Instance.new("TextButton")
-scan.Size = UDim2.new(1, -24, 0, 38)
-scan.Position = UDim2.new(0, 12, 0, 48)
-scan.BackgroundColor3 = Color3.fromRGB(55, 105, 175)
-scan.Text = "Executar diagnóstico"
-scan.TextColor3 = Color3.new(1,1,1)
-scan.Font = Enum.Font.GothamBold
-scan.TextSize = 14
-scan.Parent = frame
-Instance.new("UICorner", scan).CornerRadius = UDim.new(0, 7)
-
-local output = Instance.new("TextLabel")
-output.Size = UDim2.new(1, -24, 1, -100)
-output.Position = UDim2.new(0, 12, 0, 94)
-output.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
-output.TextColor3 = Color3.fromRGB(225, 230, 238)
-output.TextSize = 12
-output.Font = Enum.Font.Code
-output.TextXAlignment = Enum.TextXAlignment.Left
-output.TextYAlignment = Enum.TextYAlignment.Top
-output.TextWrapped = true
-output.Text = "Toque em 'Executar diagnóstico'.\n\nEste script só lê informações que o cliente consegue acessar."
-output.Parent = frame
-Instance.new("UICorner", output).CornerRadius = UDim.new(0, 7)
-
--- Arrastar a janela usando mouse ou toque.
-local dragging, dragStart, startPos
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
-    end
-end)
-frame.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-local function safeFullName(obj)
-    local ok, value = pcall(function() return obj:GetFullName() end)
-    return ok and value or obj.Name
-end
-
-local function runDiagnostics()
-    local lines = {}
-    local function add(s) table.insert(lines, s) end
-    add("AUDITORIA PASSIVA — " .. os.date("%H:%M:%S"))
-    add("Jogador: " .. LocalPlayer.Name)
-
-    local character = LocalPlayer.Character
-    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        add(string.format("Movimento observado: WalkSpeed=%.2f", humanoid.WalkSpeed))
-        local jumpValue = humanoid.UseJumpPower and humanoid.JumpPower or humanoid.JumpHeight
-        add(string.format("Salto observado: %s=%.2f", humanoid.UseJumpPower and "JumpPower" or "JumpHeight", jumpValue))
-    else
-        add("Personagem/Humanoid ainda não disponível.")
+    local function corner(obj, radius)
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, radius or 8)
+        c.Parent = obj
     end
 
-    local keywordObjects, remotes = {}, {}
-    local keywords = {"key", "chave", "door", "porta", "gate", "portao", "portão"}
-    local function hasKeyword(name)
-        local lower = string.lower(name)
-        for _, word in ipairs(keywords) do
-            if string.find(lower, word, 1, true) then return true end
+    local function makeButton(parent, text, size, pos, color)
+        local b = Instance.new("TextButton")
+        b.Size = size
+        b.Position = pos
+        b.BackgroundColor3 = color or Color3.fromRGB(49, 91, 145)
+        b.BorderSizePixel = 0
+        b.Text = text
+        b.TextColor3 = Color3.fromRGB(255,255,255)
+        b.TextSize = 14
+        b.Font = Enum.Font.GothamBold
+        b.AutoButtonColor = true
+        b.Parent = parent
+        corner(b, 8)
+        return b
+    end
+
+    local frame = Instance.new("Frame")
+    frame.Name = "Main"
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.Size = UDim2.new(0.88, 0, 0, 390)
+    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(24, 27, 34)
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+    corner(frame, 12)
+
+    local sizeConstraint = Instance.new("UISizeConstraint")
+    sizeConstraint.MinSize = Vector2.new(270, 320)
+    sizeConstraint.MaxSize = Vector2.new(430, 520)
+    sizeConstraint.Parent = frame
+
+    local header = Instance.new("Frame")
+    header.Size = UDim2.new(1, 0, 0, 44)
+    header.BackgroundColor3 = Color3.fromRGB(34, 39, 49)
+    header.BorderSizePixel = 0
+    header.Parent = frame
+    corner(header, 12)
+
+    local title = Instance.new("TextLabel")
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 12, 0, 0)
+    title.Size = UDim2.new(1, -100, 1, 0)
+    title.Text = "AUDITORIA • DELTA"
+    title.TextColor3 = Color3.fromRGB(245,245,245)
+    title.TextSize = 15
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = header
+
+    local minimize = makeButton(header, "—", UDim2.new(0, 34, 0, 30), UDim2.new(1, -76, 0, 7), Color3.fromRGB(74, 83, 99))
+    local close = makeButton(header, "×", UDim2.new(0, 34, 0, 30), UDim2.new(1, -38, 0, 7), Color3.fromRGB(150, 55, 55))
+
+    local status = Instance.new("TextLabel")
+    status.BackgroundTransparency = 1
+    status.Position = UDim2.new(0, 12, 0, 48)
+    status.Size = UDim2.new(1, -24, 0, 24)
+    status.Text = "Pronto • somente leitura"
+    status.TextColor3 = Color3.fromRGB(150, 220, 170)
+    status.TextSize = 12
+    status.Font = Enum.Font.Gotham
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = frame
+
+    local runButton = makeButton(frame, "Executar diagnóstico", UDim2.new(1, -24, 0, 38), UDim2.new(0, 12, 0, 76))
+    local clearButton = makeButton(frame, "Limpar relatório", UDim2.new(1, -24, 0, 32), UDim2.new(0, 12, 0, 120), Color3.fromRGB(70, 76, 88))
+
+    local output = Instance.new("TextLabel")
+    output.Name = "Report"
+    output.Position = UDim2.new(0, 12, 0, 160)
+    output.Size = UDim2.new(1, -24, 1, -172)
+    output.BackgroundColor3 = Color3.fromRGB(13, 15, 20)
+    output.BorderSizePixel = 0
+    output.TextColor3 = Color3.fromRGB(225, 230, 238)
+    output.TextSize = 12
+    output.Font = Enum.Font.Code
+    output.TextXAlignment = Enum.TextXAlignment.Left
+    output.TextYAlignment = Enum.TextYAlignment.Top
+    output.TextWrapped = true
+    output.Text = "Toque em 'Executar diagnóstico'.\n\nEste menu não altera o jogo."
+    output.Parent = frame
+    corner(output, 8)
+
+    local reopen = makeButton(gui, "AUDIT", UDim2.new(0, 64, 0, 48), UDim2.new(0, 14, 0.55, 0), Color3.fromRGB(40, 112, 82))
+    reopen.Visible = false
+    corner(reopen, 24)
+
+    -- Arrastar usando toque ou mouse.
+    local dragging, dragInput, dragStart, startPos
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
         end
-        return false
-    end
-
-    -- Apenas lista objetos acessíveis; não revela nem marca visualmente objetos.
-    local count = 0
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        if hasKeyword(obj.Name) and (obj:IsA("Model") or obj:IsA("BasePart") or obj:IsA("Tool") or obj:IsA("ProximityPrompt")) then
-            count += 1
-            if #keywordObjects < 12 then table.insert(keywordObjects, safeFullName(obj)) end
+    end)
+    header.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
         end
-        if count >= 500 then break end
-    end
-    add("Objetos com nomes relacionados a chaves/portas: " .. tostring(count) .. (count >= 500 and "+ (limite de busca)" or ""))
-    for _, path in ipairs(keywordObjects) do add(" • " .. path) end
-    if #keywordObjects == 0 then add(" • Nenhum objeto correspondente encontrado no Workspace acessível.") end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input == dragInput or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 
-    for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-            if #remotes < 20 then
-                table.insert(remotes, (obj:IsA("RemoteEvent") and "RemoteEvent: " or "RemoteFunction: ") .. safeFullName(obj))
+    minimize.Activated:Connect(function()
+        frame.Visible = false
+        reopen.Visible = true
+    end)
+    reopen.Activated:Connect(function()
+        frame.Visible = true
+        reopen.Visible = false
+    end)
+    close.Activated:Connect(function()
+        gui:Destroy()
+    end)
+    clearButton.Activated:Connect(function()
+        output.Text = "Relatório limpo.\nToque em 'Executar diagnóstico'."
+        status.Text = "Pronto • relatório limpo"
+    end)
+
+    local function safeFullName(obj)
+        local good, value = pcall(function() return obj:GetFullName() end)
+        return good and value or obj.Name
+    end
+
+    local function diagnose()
+        local lines = {}
+        local function add(s) table.insert(lines, s) end
+        add("DIAGNÓSTICO PASSIVO")
+        add("Horário: " .. os.date("%H:%M:%S"))
+        add("Jogador: " .. tostring(LocalPlayer.Name))
+        add("")
+
+        local character = LocalPlayer.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            add(string.format("WalkSpeed observado: %.2f", humanoid.WalkSpeed))
+            if humanoid.UseJumpPower then
+                add(string.format("JumpPower observado: %.2f", humanoid.JumpPower))
+            else
+                add(string.format("JumpHeight observado: %.2f", humanoid.JumpHeight))
+            end
+        else
+            add("Personagem/Humanoid: ainda indisponível")
+        end
+
+        local words = {"key", "chave", "door", "porta", "gate", "portao", "portão"}
+        local matches = {}
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            local name = string.lower(obj.Name)
+            local matched = false
+            for _, word in ipairs(words) do
+                if string.find(name, word, 1, true) then matched = true break end
+            end
+            if matched and (obj:IsA("Model") or obj:IsA("BasePart") or obj:IsA("Tool") or obj:IsA("ProximityPrompt")) then
+                if #matches < 15 then table.insert(matches, safeFullName(obj)) end
             end
         end
-    end
-    add("Remotos encontrados em ReplicatedStorage: " .. tostring(#remotes) .. (#remotes >= 20 and "+ (mostrando até 20)" or ""))
-    for _, path in ipairs(remotes) do add(" • " .. path) end
-    if #remotes == 0 then add(" • Nenhum remoto encontrado nessa área acessível.") end
+        add("")
+        add("Objetos com nomes relacionados a chaves/portas (máx. 15): " .. tostring(#matches))
+        if #matches == 0 then add(" - Nenhum encontrado por nome.") end
+        for _, path in ipairs(matches) do add(" - " .. path) end
 
-    add("")
-    add("LEMBRETE: nomes/objetos/remotos não provam vulnerabilidade.")
-    add("Não foram enviados comandos nem alterado o personagem.")
-    local report = table.concat(lines, "\n")
-    output.Text = report
-    print("\n========== RELATÓRIO DE AUDITORIA ==========\n" .. report .. "\n============================================")
-end
+        local remoteNames = {}
+        for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+            if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+                if #remoteNames < 20 then
+                    local kind = obj:IsA("RemoteEvent") and "RemoteEvent" or "RemoteFunction"
+                    table.insert(remoteNames, kind .. ": " .. safeFullName(obj))
+                end
+            end
+        end
+        add("")
+        add("Remotos visíveis em ReplicatedStorage (máx. 20): " .. tostring(#remoteNames))
+        if #remoteNames == 0 then add(" - Nenhum encontrado nessa área.") end
+        for _, remote in ipairs(remoteNames) do add(" - " .. remote) end
 
-scan.MouseButton1Click:Connect(function()
-    output.Text = "Executando leitura..."
-    local ok, err = pcall(runDiagnostics)
-    if not ok then
-        output.Text = "Erro no diagnóstico:\n" .. tostring(err)
-        warn("[Auditoria] " .. tostring(err))
+        add("")
+        add("Nota: descoberta por nome não comprova vulnerabilidade.")
+        add("Nenhum evento foi chamado e nenhum atributo foi alterado.")
+        return table.concat(lines, "\n")
     end
+
+    runButton.Activated:Connect(function()
+        status.Text = "Lendo informações acessíveis..."
+        output.Text = "Executando diagnóstico..."
+        task.spawn(function()
+            local good, result = pcall(diagnose)
+            if good then
+                output.Text = result
+                status.Text = "Concluído • somente leitura"
+                print("[Delta Auditoria]\n" .. result)
+            else
+                output.Text = "Falha no diagnóstico:\n" .. tostring(result)
+                status.Text = "Erro • veja o relatório"
+                warn("[Delta Auditoria] " .. tostring(result))
+            end
+        end)
+    end)
+
+    print("[Delta Auditoria] Menu criado no PlayerGui. Toque em 'Executar diagnóstico'.")
 end)
 
-print("[Auditoria] Interface carregada. Toque em 'Executar diagnóstico'.")
+if not ok then
+    warn("[Delta Auditoria] Não foi possível criar a interface: " .. tostring(err))
+end

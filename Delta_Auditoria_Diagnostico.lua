@@ -1,75 +1,102 @@
--- DELTA MOBILE BULLETPROOF SCRIPT
--- Versão 2.0 - Com Debug e UI Forçada
-
--- 1. VERIFICAÇÃO DE AMBIENTE
-if not game or not game.Players or not game.Players.LocalPlayer then
-    print("[ERRO] Ambiente Roblox não detectado.")
-    return
-end
+-- DELTA MOBILE V3.0 - VISUAL FIX & DEBUG
+-- Corrigido para: Aura Visível, Menu no Topo e Indicador de ESP
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
--- 2. FUNÇÃO DE LOG (Para ver erros na tela do jogo)
-local function log(msg, color)
-    color = color or "info"
-    local screenGui = player:FindFirstChild("PlayerGui")
-    if not screenGui then return end
-    
-    local existingGui = screenGui:FindFirstChild("DeltaHackLog")
-    if not existingGui then
-        existingGui = Instance.new("ScreenGui")
-        existingGui.Name = "DeltaHackLog"
-        existingGui.ResetOnSpawn = false
-        existingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        existingGui.Parent = screenGui
-    end
-    
-    local label = Instance.new("TextLabel")
-    label.Name = "Log_" .. os.time()
-    label.Size = UDim2.new(0, 300, 0, 30)
-    label.Position = UDim2.new(0, 10, 0, 10)
-    label.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    label.BackgroundTransparency = 0.2
-    label.TextColor3 = color == "error" and Color3.fromRGB(255, 50, 50) or (color == "success" and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 255, 255))
-    label.TextScaled = true
-    label.Font = Enum.Font.Code
-    label.Text = msg
-    label.Parent = existingGui
-    
-    -- Remove após 5 segundos
-    task.delay(5, function()
-        if label and label.Parent then
-            label:Destroy()
-        end
-    end)
-end
-
--- 3. CONFIGURAÇÕES
+-- CONFIGURAÇÕES AVANÇADAS
 local CONFIG = {
     Speed = 48,
     JumpPower = 60,
     AuraColor = Color3.fromRGB(0, 255, 128),
-    AuraSize = 1.2,
-    ESPRadius = 250,
-    ESPInterval = 0.15
+    AuraSize = 1.5, -- Aumentado para ser mais visível
+    ESPRadius = 300, -- Aumentado para cobrir mais área
+    ESPInterval = 0.1, -- Mais rápido
+    MenuDisplayOrder = 9999 -- Força o menu a ficar no topo
 }
 
--- 4. FUNÇÕES PRINCIPAIS
-local function applySpeed(character)
-    local humanoid = character:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = CONFIG.Speed
-        humanoid.JumpPower = CONFIG.JumpPower
-        log("Speed: " .. CONFIG.Speed, "success")
-    end
+-- 1. SISTEMA DE UI ROBUSTO
+local function createDebugUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "DeltaHackUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.DisplayOrder = CONFIG.MenuDisplayOrder
+    screenGui.IgnoreGuiInset = true
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+    
+    -- Painel Principal
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainPanel"
+    mainFrame.Size = UDim2.new(0, 250, 0, 120)
+    mainFrame.Position = UDim2.new(0, 10, 0, 10)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    mainFrame.BackgroundTransparency = 0.2
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = mainFrame
+    
+    -- Título
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.TextColor3 = CONFIG.AuraColor
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Text = "DELTA HACK ACTIVE"
+    title.Parent = mainFrame
+    
+    -- Status de Velocidade
+    local speedLabel = Instance.new("TextLabel")
+    speedLabel.Name = "SpeedStatus"
+    speedLabel.Size = UDim2.new(1, -10, 0, 25)
+    speedLabel.Position = UDim2.new(0, 5, 0, 35)
+    speedLabel.BackgroundTransparency = 1
+    speedLabel.TextColor3 = Color3.new(1, 1, 1)
+    speedLabel.TextScaled = true
+    speedLabel.Font = Enum.Font.Code
+    speedLabel.Text = "SPEED: " .. CONFIG.Speed
+    speedLabel.Parent = mainFrame
+    
+    -- Status da Aura
+    local auraLabel = Instance.new("TextLabel")
+    auraLabel.Name = "AuraStatus"
+    auraLabel.Size = UDim2.new(1, -10, 0, 25)
+    auraLabel.Position = UDim2.new(0, 5, 0, 60)
+    auraLabel.BackgroundTransparency = 1
+    auraLabel.TextColor3 = CONFIG.AuraColor
+    auraLabel.TextScaled = true
+    auraLabel.Font = Enum.Font.Code
+    auraLabel.Text = "AURA: VISIBLE (GLOW)"
+    auraLabel.Parent = mainFrame
+    
+    -- Indicador de ESP (Distância)
+    local espLabel = Instance.new("TextLabel")
+    espLabel.Name = "ESPIndicator"
+    espLabel.Size = UDim2.new(1, -10, 0, 25)
+    espLabel.Position = UDim2.new(0, 5, 0, 85)
+    espLabel.BackgroundTransparency = 1
+    espLabel.TextColor3 = Color3.new(1, 1, 1)
+    espLabel.TextScaled = true
+    espLabel.Font = Enum.Font.Code
+    espLabel.Text = "ESP NEUTRALIZE: [SCANING...]"
+    espLabel.Parent = mainFrame
+    
+    return screenGui, espLabel
 end
 
-local function createAura(character, rootPart)
-    local existingAura = character:FindFirstChild("SuperAura")
-    if existingAura then existingAura:Destroy() end
+-- 2. CRIAÇÃO DA AURA MELHORADA
+local function createEnhancedAura(character, rootPart)
+    -- Remove auras antigas
+    local oldAura = character:FindFirstChild("SuperAura")
+    if oldAura then oldAura:Destroy() end
     
+    -- Aura Principal
     local aura = Instance.new("Part")
     aura.Name = "SuperAura"
     aura.Shape = Enum.PartType.Ball
@@ -77,10 +104,20 @@ local function createAura(character, rootPart)
     aura.Material = Enum.Material.Neon
     aura.BrickColor = BrickColor.new(CONFIG.AuraColor)
     aura.CanCollide = false
-    aura.Transparency = 0.6
+    aura.Transparency = 0.4 -- Mais opaca para ser vista
     aura.Anchored = true
+    aura.CastShadow = false
     aura.Parent = character
     
+    -- Adiciona Glow (Brilho)
+    local glow = Instance.new("PointLight")
+    glow.Name = "AuraGlow"
+    glow.Color = CONFIG.AuraColor
+    glow.Brightness = 2
+    glow.Range = 15
+    glow.Parent = aura
+    
+    -- Loop de Posicionamento
     task.spawn(function()
         while character and character.Parent do
             if aura and aura.Parent then
@@ -89,63 +126,84 @@ local function createAura(character, rootPart)
             task.wait()
         end
     end)
-    log("Aura Criada", "success")
 end
 
-local function neutralizeESP(rootPart)
-    local allPlayers = Players:GetPlayers()
-    for _, otherPlayer in allPlayers do
-        if otherPlayer ~= player and otherPlayer.Character then
-            local otherHead = otherPlayer.Character:FindFirstChild("Head")
-            if otherHead then
-                local distance = (rootPart.Position - otherHead.Position).Magnitude
-                if distance < CONFIG.ESPRadius then
-                    -- Remove Highlights
-                    local highlight = otherPlayer.Character:FindFirstChildWhichIsA("Highlight")
-                    if highlight then highlight:Destroy() end
-                    
-                    -- Remove Billboards
-                    local billboard = otherPlayer.Character:FindFirstChildWhichIsA("BillboardGui")
-                    if billboard then billboard.Enabled = false end
-                end
-            end
-        end
-    end
-end
-
--- 5. LOOP PRINCIPAL
-local function startSystem()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local rootPart = character:WaitForChild("HumanoidRootPart")
-    
-    -- Aplica Speed Inicial
-    applySpeed(character)
-    createAura(character, rootPart)
-    
-    -- Loop de ESP
+-- 3. LÓGICA DE ESP COM FEEDBACK VISUAL
+local function startESPSystem(rootPart, espLabel)
     task.spawn(function()
         while true do
             task.wait(CONFIG.ESPInterval)
-            pcall(function()
-                neutralizeESP(rootPart)
-            end)
+            local nearestDistance = math.huge
+            local enemiesNeutralized = 0
+            
+            for _, otherPlayer in Players:GetPlayers() do
+                if otherPlayer ~= player and otherPlayer.Character then
+                    local otherHead = otherPlayer.Character:FindFirstChild("Head")
+                    if otherHead then
+                        local distance = (rootPart.Position - otherHead.Position).Magnitude
+                        if distance < CONFIG.ESPRadius then
+                            nearestDistance = math.min(nearestDistance, distance)
+                            
+                            -- Neutraliza
+                            local highlight = otherPlayer.Character:FindFirstChildWhichIsA("Highlight")
+                            if highlight then 
+                                highlight:Destroy()
+                                enemiesNeutralized += 1
+                            end
+                            
+                            local billboard = otherPlayer.Character:FindFirstChildWhichIsA("BillboardGui")
+                            if billboard then billboard.Enabled = false end
+                        end
+                    end
+                end
+            end
+            
+            -- Atualiza o Texto na Tela
+            if espLabel and espLabel.Parent then
+                if enemiesNeutralized > 0 then
+                    espLabel.Text = "ESP NEUTRALIZE: [" .. enemiesNeutralized .. " CLEARED] (DIST: " .. math.floor(nearestDistance) .. "m)"
+                    espLabel.TextColor3 = CONFIG.AuraColor
+                else
+                    espLabel.Text = "ESP NEUTRALIZE: [NO TARGETS IN " .. CONFIG.ESPRadius .. "m]"
+                    espLabel.TextColor3 = Color3.new(1, 1, 1)
+                end
+            end
         end
     end)
+end
+
+-- 4. EXECUÇÃO PRINCIPAL
+local function initialize()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
     
-    -- Reaplicar ao respawnar
+    -- Aplica Speed
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = CONFIG.Speed
+        humanoid.JumpPower = CONFIG.JumpPower
+    end
+    
+    -- Cria Aura
+    createEnhancedAura(character, rootPart)
+    
+    -- Cria UI e Inicia ESP
+    local _, espLabel = createDebugUI()
+    startESPSystem(rootPart, espLabel)
+    
+    -- Reaplicar ao Respawn
     player.CharacterAdded:Connect(function(newChar)
         task.wait(1)
         local newRoot = newChar:WaitForChild("HumanoidRootPart")
-        applySpeed(newChar)
-        createAura(newChar, newRoot)
+        local newHumanoid = newChar:FindFirstChild("Humanoid")
+        if newHumanoid then
+            newHumanoid.WalkSpeed = CONFIG.Speed
+            newHumanoid.JumpPower = CONFIG.JumpPower
+        end
+        createEnhancedAura(newChar, newRoot)
     end)
-    
-    log("SISTEMA ATIVO", "success")
 end
 
--- 6. EXECUÇÃO SEGURA
-pcall(function()
-    startSystem()
-end, function(err)
-    log("ERRO: " .. tostring(err), "error")
+pcall(initialize, function(err)
+    print("ERRO CRÍTICO: " .. tostring(err))
 end)

@@ -1,249 +1,154 @@
--- Delta_Auditoria_Menu_Corrigido.lua
--- Interface mobile + diagnóstico somente leitura.
--- Não ativa cheats, não dispara remotos e não modifica o personagem.
+-- DELTA MOBILE OPTIMIZED SCRIPT
+-- Copie e cole no Delta Executer
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
 
-if not LocalPlayer then
-    warn("[Auditoria] LocalPlayer indisponível. Execute dentro de uma experiência Roblox.")
-    return
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local head = character:WaitForChild("Head")
+
+-- CONFIGURAÇÕES
+local speedMultiplier = 48 -- Velocidade (24 é padrão, 48 é hack)
+local auraColor = Color3.fromRGB(0, 255, 128)
+local auraSize = 1.2
+local espNeutralizeRadius = 250
+local neutralizeInterval = 0.15 -- 150ms (melhor performance no mobile)
+
+-- 1. SPEED & JUMP
+local function applyMovementMods()
+    humanoid.WalkSpeed = speedMultiplier
+    humanoid.JumpPower = 60
+    humanoid.UseJumpPower = true -- Pulo mais consistente
 end
+applyMovementMods()
 
-local ok, err = pcall(function()
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
-    if not playerGui then error("PlayerGui não ficou disponível.") end
+-- 2. SUPER AURA (Otimizado para Mobile)
+local aura = Instance.new("Part")
+aura.Name = "SuperAura"
+aura.Shape = Enum.PartType.Ball
+aura.Size = Vector3.new(auraSize, auraSize, auraSize)
+aura.Material = Enum.Material.Neon
+aura.BrickColor = BrickColor.new(auraColor)
+aura.CanCollide = false
+aura.Transparency = 0.6
+aura.Anchored = true
+aura.Parent = character
 
-    -- Limpa a versão anterior desta interface.
-    local old = playerGui:FindFirstChild("DeltaAuditoriaMenu")
-    if old then old:Destroy() end
-
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "DeltaAuditoriaMenu"
-    gui.ResetOnSpawn = false
-    gui.IgnoreGuiInset = false
-    gui.DisplayOrder = 999
-    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    gui.Parent = playerGui
-
-    local function corner(obj, radius)
-        local c = Instance.new("UICorner")
-        c.CornerRadius = UDim.new(0, radius or 8)
-        c.Parent = obj
+local function updateAuraLoop()
+    while character and character.Parent do
+        if aura and aura.Parent then
+            aura.CFrame = rootPart.CFrame
+        end
+        task.wait() -- Heartbeat implícito via task.wait()
     end
+end
+task.spawn(updateAuraLoop)
 
-    local function makeButton(parent, text, size, pos, color)
-        local b = Instance.new("TextButton")
-        b.Size = size
-        b.Position = pos
-        b.BackgroundColor3 = color or Color3.fromRGB(49, 91, 145)
-        b.BorderSizePixel = 0
-        b.Text = text
-        b.TextColor3 = Color3.fromRGB(255,255,255)
-        b.TextSize = 14
-        b.Font = Enum.Font.GothamBold
-        b.AutoButtonColor = true
-        b.Parent = parent
-        corner(b, 8)
-        return b
-    end
-
-    local frame = Instance.new("Frame")
-    frame.Name = "Main"
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.Size = UDim2.new(0.88, 0, 0, 390)
-    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(24, 27, 34)
-    frame.BorderSizePixel = 0
-    frame.Parent = gui
-    corner(frame, 12)
-
-    local sizeConstraint = Instance.new("UISizeConstraint")
-    sizeConstraint.MinSize = Vector2.new(270, 320)
-    sizeConstraint.MaxSize = Vector2.new(430, 520)
-    sizeConstraint.Parent = frame
-
-    local header = Instance.new("Frame")
-    header.Size = UDim2.new(1, 0, 0, 44)
-    header.BackgroundColor3 = Color3.fromRGB(34, 39, 49)
-    header.BorderSizePixel = 0
-    header.Parent = frame
-    corner(header, 12)
-
-    local title = Instance.new("TextLabel")
-    title.BackgroundTransparency = 1
-    title.Position = UDim2.new(0, 12, 0, 0)
-    title.Size = UDim2.new(1, -100, 1, 0)
-    title.Text = "AUDITORIA • DELTA"
-    title.TextColor3 = Color3.fromRGB(245,245,245)
-    title.TextSize = 15
-    title.Font = Enum.Font.GothamBold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = header
-
-    local minimize = makeButton(header, "—", UDim2.new(0, 34, 0, 30), UDim2.new(1, -76, 0, 7), Color3.fromRGB(74, 83, 99))
-    local close = makeButton(header, "×", UDim2.new(0, 34, 0, 30), UDim2.new(1, -38, 0, 7), Color3.fromRGB(150, 55, 55))
-
-    local status = Instance.new("TextLabel")
-    status.BackgroundTransparency = 1
-    status.Position = UDim2.new(0, 12, 0, 48)
-    status.Size = UDim2.new(1, -24, 0, 24)
-    status.Text = "Pronto • somente leitura"
-    status.TextColor3 = Color3.fromRGB(150, 220, 170)
-    status.TextSize = 12
-    status.Font = Enum.Font.Gotham
-    status.TextXAlignment = Enum.TextXAlignment.Left
-    status.Parent = frame
-
-    local runButton = makeButton(frame, "Executar diagnóstico", UDim2.new(1, -24, 0, 38), UDim2.new(0, 12, 0, 76))
-    local clearButton = makeButton(frame, "Limpar relatório", UDim2.new(1, -24, 0, 32), UDim2.new(0, 12, 0, 120), Color3.fromRGB(70, 76, 88))
-
-    local output = Instance.new("TextLabel")
-    output.Name = "Report"
-    output.Position = UDim2.new(0, 12, 0, 160)
-    output.Size = UDim2.new(1, -24, 1, -172)
-    output.BackgroundColor3 = Color3.fromRGB(13, 15, 20)
-    output.BorderSizePixel = 0
-    output.TextColor3 = Color3.fromRGB(225, 230, 238)
-    output.TextSize = 12
-    output.Font = Enum.Font.Code
-    output.TextXAlignment = Enum.TextXAlignment.Left
-    output.TextYAlignment = Enum.TextYAlignment.Top
-    output.TextWrapped = true
-    output.Text = "Toque em 'Executar diagnóstico'.\n\nEste menu não altera o jogo."
-    output.Parent = frame
-    corner(output, 8)
-
-    local reopen = makeButton(gui, "AUDIT", UDim2.new(0, 64, 0, 48), UDim2.new(0, 14, 0.55, 0), Color3.fromRGB(40, 112, 82))
-    reopen.Visible = false
-    corner(reopen, 24)
-
-    -- Arrastar usando toque ou mouse.
-    local dragging, dragInput, dragStart, startPos
-    header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
-            end)
-        end
-    end)
-    header.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input == dragInput or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    minimize.Activated:Connect(function()
-        frame.Visible = false
-        reopen.Visible = true
-    end)
-    reopen.Activated:Connect(function()
-        frame.Visible = true
-        reopen.Visible = false
-    end)
-    close.Activated:Connect(function()
-        gui:Destroy()
-    end)
-    clearButton.Activated:Connect(function()
-        output.Text = "Relatório limpo.\nToque em 'Executar diagnóstico'."
-        status.Text = "Pronto • relatório limpo"
-    end)
-
-    local function safeFullName(obj)
-        local good, value = pcall(function() return obj:GetFullName() end)
-        return good and value or obj.Name
-    end
-
-    local function diagnose()
-        local lines = {}
-        local function add(s) table.insert(lines, s) end
-        add("DIAGNÓSTICO PASSIVO")
-        add("Horário: " .. os.date("%H:%M:%S"))
-        add("Jogador: " .. tostring(LocalPlayer.Name))
-        add("")
-
-        local character = LocalPlayer.Character
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            add(string.format("WalkSpeed observado: %.2f", humanoid.WalkSpeed))
-            if humanoid.UseJumpPower then
-                add(string.format("JumpPower observado: %.2f", humanoid.JumpPower))
-            else
-                add(string.format("JumpHeight observado: %.2f", humanoid.JumpHeight))
-            end
-        else
-            add("Personagem/Humanoid: ainda indisponível")
-        end
-
-        local words = {"key", "chave", "door", "porta", "gate", "portao", "portão"}
-        local matches = {}
-        for _, obj in ipairs(Workspace:GetDescendants()) do
-            local name = string.lower(obj.Name)
-            local matched = false
-            for _, word in ipairs(words) do
-                if string.find(name, word, 1, true) then matched = true break end
-            end
-            if matched and (obj:IsA("Model") or obj:IsA("BasePart") or obj:IsA("Tool") or obj:IsA("ProximityPrompt")) then
-                if #matches < 15 then table.insert(matches, safeFullName(obj)) end
-            end
-        end
-        add("")
-        add("Objetos com nomes relacionados a chaves/portas (máx. 15): " .. tostring(#matches))
-        if #matches == 0 then add(" - Nenhum encontrado por nome.") end
-        for _, path in ipairs(matches) do add(" - " .. path) end
-
-        local remoteNames = {}
-        for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-            if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-                if #remoteNames < 20 then
-                    local kind = obj:IsA("RemoteEvent") and "RemoteEvent" or "RemoteFunction"
-                    table.insert(remoteNames, kind .. ": " .. safeFullName(obj))
+-- 3. ESP NEUTRALIZATION (Otimizado para Mobile)
+local function neutralizeEnemyESP()
+    local allPlayers = Players:GetPlayers()
+    
+    for _, otherPlayer in allPlayers do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherHead = otherPlayer.Character:FindFirstChild("Head")
+            if otherHead then
+                local distance = (rootPart.Position - otherHead.Position).Magnitude
+                
+                if distance < espNeutralizeRadius then
+                    -- Neutraliza Highlights (ESP visual)
+                    local highlight = otherPlayer.Character:FindFirstChildWhichIsA("Highlight")
+                    if highlight then
+                        highlight:Destroy()
+                    end
+                    
+                    -- Neutraliza Billboards (Nomes/HP)
+                    local billboard = otherPlayer.Character:FindFirstChildWhichIsA("BillboardGui")
+                    if billboard then
+                        billboard.Enabled = false
+                    end
+                    
+                    -- Opcional: Remove TrailEffects (se o jogo usar)
+                    local trail = otherPlayer.Character:FindFirstChildWhichIsA("Trail")
+                    if trail then
+                        trail:Destroy()
+                    end
                 end
             end
         end
-        add("")
-        add("Remotos visíveis em ReplicatedStorage (máx. 20): " .. tostring(#remoteNames))
-        if #remoteNames == 0 then add(" - Nenhum encontrado nessa área.") end
-        for _, remote in ipairs(remoteNames) do add(" - " .. remote) end
-
-        add("")
-        add("Nota: descoberta por nome não comprova vulnerabilidade.")
-        add("Nenhum evento foi chamado e nenhum atributo foi alterado.")
-        return table.concat(lines, "\n")
     end
+end
 
-    runButton.Activated:Connect(function()
-        status.Text = "Lendo informações acessíveis..."
-        output.Text = "Executando diagnóstico..."
+-- Loop de Neutralização (Throttled para performance)
+local function startNeutralizationLoop()
+    while true do
+        task.wait(neutralizeInterval)
+        neutralizeEnemyESP()
+    end
+end
+task.spawn(startNeutralizationLoop)
+
+-- 4. RECONEXÃO AUTOMÁTICA (Reaplica ao respawnar)
+local function onCharacterAdded(newChar)
+    task.wait(1) -- Espera o personagem carregar
+    local newHumanoid = newChar:FindFirstChild("Humanoid")
+    local newRoot = newChar:FindFirstChild("HumanoidRootPart")
+    
+    if newHumanoid and newRoot then
+        -- Reaplica Speed
+        newHumanoid.WalkSpeed = speedMultiplier
+        newHumanoid.JumpPower = 60
+        
+        -- Recria Aura
+        if aura and aura.Parent then
+            aura:Destroy()
+        end
+        local newAura = Instance.new("Part")
+        newAura.Name = "SuperAura"
+        newAura.Shape = Enum.PartType.Ball
+        newAura.Size = Vector3.new(auraSize, auraSize, auraSize)
+        newAura.Material = Enum.Material.Neon
+        newAura.BrickColor = BrickColor.new(auraColor)
+        newAura.CanCollide = false
+        newAura.Transparency = 0.6
+        newAura.Anchored = true
+        newAura.Parent = newChar
+        
         task.spawn(function()
-            local good, result = pcall(diagnose)
-            if good then
-                output.Text = result
-                status.Text = "Concluído • somente leitura"
-                print("[Delta Auditoria]\n" .. result)
-            else
-                output.Text = "Falha no diagnóstico:\n" .. tostring(result)
-                status.Text = "Erro • veja o relatório"
-                warn("[Delta Auditoria] " .. tostring(result))
+            while newChar and newChar.Parent do
+                if newAura and newAura.Parent then
+                    newAura.CFrame = newRoot.CFrame
+                end
+                task.wait()
             end
         end)
-    end)
-
-    print("[Delta Auditoria] Menu criado no PlayerGui. Toque em 'Executar diagnóstico'.")
-end)
-
-if not ok then
-    warn("[Delta Auditoria] Não foi possível criar a interface: " .. tostring(err))
+    end
 end
+
+player.CharacterAdded:Connect(onCharacterAdded)
+
+-- 5. UI DE STATUS (Opcional, para confirmar que está rodando)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HackStatus"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local label = Instance.new("TextLabel")
+label.Name = "StatusLabel"
+label.Size = UDim2.new(0, 200, 0, 40)
+label.Position = UDim2.new(0, 10, 0, 10)
+label.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+label.BackgroundTransparency = 0.3
+label.TextColor3 = Color3.fromRGB(0, 255, 128)
+label.TextScaled = true
+label.Font = Enum.Font.GothamBold
+label.Text = "HACK ATIVO\nSpeed: 48 | Aura: ON\nESP Neutro: ON"
+label.Parent = screenGui
+
+print("[DELTA] Script executado com sucesso!")
+print("[DELTA] Speed: " .. speedMultiplier)
+print("[DELTA] Aura: Ativa")
+print("[DELTA] ESP Neutralization: Ativa")
